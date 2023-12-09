@@ -1,0 +1,1 @@
+docker run --name "nomeDB" -p "porta_host":27017 -v dati:/data/db mongo
