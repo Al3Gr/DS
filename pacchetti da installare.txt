@@ -1,2 +1,5 @@
 torch torchvision torchaudio
 Flask
+pymongo
+grpcio
+grpcio-tools
