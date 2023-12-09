@@ -1,3 +1,6 @@
+import grpc
+import user_pb2
+import user_pb2_grpc
 from flask import Flask, request
 
 app = Flask(__name__)
