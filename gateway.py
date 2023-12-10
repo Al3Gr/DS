@@ -1,7 +1,9 @@
-import grpc
+from flask import Flask, request
+
 import user_pb2
 import user_pb2_grpc
-from flask import Flask, request
+import grpc
+
 
 app = Flask(__name__)
 
@@ -17,14 +19,15 @@ def test():
     return args
 
 
-# entrypoint registrazione utente
+# entrypoint registrazione
 @app.post("/signup")
 def signup():
     username = request.form["username"]
     password = request.form["password"]
-    print(f"{username}:{password}")
-    # Comunicazione diretta gRPC con microUser per ottenere OKAY (TOKEN???)
-    return "Signup"
+    with grpc.insecure_channel('localhost:20000') as channel:
+        stub = user_pb2_grpc.UserServiceStub(channel)
+        response = stub.UserSignup(user_pb2.User(username=username, password=password))
+    return response.success
 
 
 # entrypoint login
@@ -32,9 +35,10 @@ def signup():
 def login():
     username = request.form["username"]
     password = request.form["password"]
-    print(f"{username}:{password}")
-    # Comunicazione diretta gRPC con microUser per ottenere OKAY (TOKEN???)
-    return "Login"
+    with grpc.insecure_channel('localhost:20000') as channel:
+        stub = user_pb2_grpc.UserServiceStub(channel)
+        response = stub.UserLogin(user_pb2.User(username=username, password=password))
+    return response.token
 
 
 # entrypoint post immagine

@@ -3,7 +3,8 @@ syntax = "proto3";
 package user;
 
 service UserService {
-  rpc UserMessage (User) returns (Reply) {}
+  rpc UserLogin (User) returns (ReplyToken) {}
+  rpc UserSignup (User) returns (ReplySuccess) {}
 }
 
 message User{
@@ -11,6 +12,10 @@ message User{
   string password = 2;
 }
 
-message Reply {
+message ReplyToken {
   string token = 1;
+}
+
+message ReplySuccess {
+  string success = 1;
 }

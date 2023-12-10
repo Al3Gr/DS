@@ -12,8 +12,14 @@ class User(_message.Message):
     password: str
     def __init__(self, username: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
 
-class Reply(_message.Message):
+class ReplyToken(_message.Message):
     __slots__ = ("token",)
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     token: str
     def __init__(self, token: _Optional[str] = ...) -> None: ...
+
+class ReplySuccess(_message.Message):
+    __slots__ = ("success",)
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    success: str
+    def __init__(self, success: _Optional[str] = ...) -> None: ...
