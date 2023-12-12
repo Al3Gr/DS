@@ -1,6 +1,5 @@
 import pymongo
 
-
 class UserDB:
 
     def __init__(self):
