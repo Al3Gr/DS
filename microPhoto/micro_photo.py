@@ -1,5 +1,6 @@
 from enum import Enum
 from photoDB import PhotoDB
+from flask import Flask
 
 class PhotoState(Enum):
     UPLOADING = 1
@@ -8,4 +9,14 @@ class PhotoState(Enum):
     TAGGED = 4
 
 
-print(PhotoState.TAGGED.name)
+__db = PhotoDB()
+
+app = Flask(__name__)
+
+@app.post("/upload_image")
+def upload():
+    pass
+
+
+if __name__ == "main":
+    app.run()
