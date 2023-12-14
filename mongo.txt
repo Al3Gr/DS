@@ -1,3 +1,4 @@
 docker run --name "nomeDB" -p "porta_host":27017 -v dati:/data/db mongo
 
-per il database user setta la host_port uguale a 9080
+per il database user setta la host_port uguale a 9080, per quello photo 9081
+per entrambi le credenziali sono username DS e password 2023

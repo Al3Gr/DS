@@ -5,6 +5,7 @@ app = Flask(__name__)
 
 __db = UserDB("DS", "2023")
 
+
 @app.post("/signup")
 def signup():
     username = request.form["username"]
