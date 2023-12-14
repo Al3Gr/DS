@@ -1,0 +1,5 @@
+FROM mongo:latest
+ENV MONGO_INITDB_ROOT_USERNAME DS
+ENV MONGO_INITDB_ROOT_PASSWORD 2023
+ENV MONGO_INITDB_DATABASE dsdb
+COPY mongo-init.js /docker-entrypoint-initdb.d/

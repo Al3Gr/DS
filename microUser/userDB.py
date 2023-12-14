@@ -1,14 +1,19 @@
-import pymongo
+from pymongo import MongoClient, errors
+
 
 class UserDB:
 
-    def __init__(self):
-        self.client = pymongo.MongoClient("mongodb://localhost:9080/")
-        self.db = self.client["DS"]
+    def __init__(self, username, pwd):
+        self.client = MongoClient("mongodb://localhost:9080/", username=username, password=pwd)
+        self.db = self.client["dsdb"]
         self.collection = self.db["users"]
 
     def signup(self, user):
-        self.collection.insert_one(user)
+        try:
+            self.collection.insert_one(user)
+            return True
+        except errors.DuplicateKeyError:
+            return False
 
     def login(self, user):
         result = self.collection.find_one(user)

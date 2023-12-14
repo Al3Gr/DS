@@ -3,15 +3,17 @@ from userDB import UserDB
 
 app = Flask(__name__)
 
-__db = UserDB()
+__db = UserDB("DS", "2023")
 
 @app.post("/signup")
 def signup():
     username = request.form["username"]
     password = request.form["password"]
     query = {"username": username, "password": password}
-    __db.signup(query)
-    return "Ok"
+    result = __db.signup(query)
+    if not result:
+        return "Error"
+    return "OK"
 
 
 # entrypoint login
@@ -21,6 +23,10 @@ def login():
     password = request.form["password"]
     query = {"username": username, "password": password}
     result = __db.login(query)
-    if result:
-        return "TOKEN"
-    return "ERROR"
+    if not result:
+        return "ERROR"
+    return "TOKEN"
+
+
+if __name__ == "main":
+    app.run()
