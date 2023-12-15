@@ -12,7 +12,7 @@ class PhotoDB:
         result = self.collection.insert_one(photo)
         return result.inserted_id
 
-    def setTagged(self, photo_id, status):
+    def updatePhoto(self, photo_id, status, url=None):
         _filter = {"_id": photo_id}
-        _new_status = {"$set": {"status": status}}
-        self.collection.update_one(_filter, _new_status)
+        _update = {"$set": {"status": status, "url": url}}
+        self.collection.update_one(_filter, _update)
