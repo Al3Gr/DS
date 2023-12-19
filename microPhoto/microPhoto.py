@@ -1,6 +1,18 @@
+import jwt
 from enum import Enum
 from photoDB import PhotoDB
 from flask import Flask, request
+
+
+def check_token(func):
+    def decorator(*args, **kwargs):
+        token = request.headers["Authorization"]
+        decoded = jwt.decode(token, key= "segreto", algorithms="HS256")
+        if decoded["valid"]:
+            return func(decoded["username"])
+        else:
+            return "False"
+    return decorator
 
 
 class PhotoState(Enum):
@@ -15,14 +27,13 @@ app = Flask(__name__)
 
 
 @app.post("/upload")
-def upload():
+@check_token
+def upload(username):
     status = PhotoState.UPLOADING.name
-    username = request.form["username"]
     description = request.form["description"]
     #image = request.files // questo è come ottenere il file
     query = {"username": username, "description": description, "status": status}
     #image['image'].stream.read() // questo è il binary dell'immagine che bisogna mandare tramite grpc
-    ## TODO: aggiungere comunicazione con minio tramite gRPC
     photo_id = __db.addPhoto(query)
     __db.updatePhoto(photo_id, PhotoState.UNTAGGED.name)
     return "Test"

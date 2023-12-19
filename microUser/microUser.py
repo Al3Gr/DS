@@ -1,3 +1,4 @@
+import jwt
 from flask import Flask, request
 from userDB import UserDB
 
@@ -26,7 +27,10 @@ def login():
     result = __db.login(query)
     if not result:
         return "ERROR"
-    return "TOKEN"
+    else:
+        t_data = {"username": f"{username}", "valid": True}
+        token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
+        return token
 
 
 if __name__ == "main":

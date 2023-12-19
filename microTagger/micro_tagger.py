@@ -1,4 +1,6 @@
 import torch
+import os
+import random
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
@@ -20,7 +22,8 @@ preprocess = transforms.Compose([
 
 
 def session():
-    input_image = Image.open(f"server_image_{id}.jpeg")
+    seed = random.randint(0, 100)
+    input_image = Image.open(f"server_image_{seed}.jpeg")
     input_tensor = preprocess(input_image)
     input_batch = input_tensor.unsqueeze(0)
 
@@ -40,5 +43,6 @@ def session():
         print(categories[top5_catid[i]], top5_prob[i].item())
 
     print("Send response to client")
+    os.remove(f"server_image_{seed}.jpeg")
 
 
