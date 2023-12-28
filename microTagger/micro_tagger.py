@@ -9,21 +9,8 @@ from torchvision.models import AlexNet_Weights, alexnet
 #ssl._create_default_https_context = ssl._create_unverified_context
 
 
-model = alexnet(weights=AlexNet_Weights.DEFAULT)
-model.eval()
-
-preprocess = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225]),
-])
-
-
-def session():
-    seed = random.randint(0, 100)
-    input_image = Image.open(f"server_image_{seed}.jpeg")
+def session(filename, model, preprocess):
+    input_image = Image.open(filename)
     input_tensor = preprocess(input_image)
     input_batch = input_tensor.unsqueeze(0)
 
@@ -43,6 +30,26 @@ def session():
         print(categories[top5_catid[i]], top5_prob[i].item())
 
     print("Send response to client")
-    os.remove(f"server_image_{seed}.jpeg")
+    os.remove(filename)
+
+
+def main():
+    model = alexnet(weights=AlexNet_Weights.DEFAULT)
+    model.eval()
+
+    preprocess = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225]),
+    ])
+    ## INSERIRE KAFKA E LA RICEZIONE DELL'IMMAGINE
+    seed = random.randint(0, 100)
+    session(f"image_server_{seed}.jpeg", model=model, preprocess=preprocess)
+
+
+if __name__ == "__main__":
+    main()
 
 
