@@ -1,0 +1,82 @@
+x-common-settings: &common-settings
+  restart: always
+
+services:
+  apigw:
+    <<: *common-settings
+    image: nginx:latest
+    container_name: apigw
+    ports:
+      - 80:80
+    depends_on:
+      - microphoto
+      - microuser
+      - microtagger
+    volumes:
+      - ../nginx/routing.conf:/etc/nginx/conf.d/routing.conf
+    networks:
+      - frontend
+
+  microuser:
+    <<: *common-settings
+    build:
+      context: .
+      dockerfile: microUser/dockerfile
+    container_name: microuser
+    depends_on:
+      - userdb
+    networks:
+      - frontend
+      - backend
+
+  microphoto:
+    <<: *common-settings
+    build:
+      context: .
+      dockerfile: microPhoto/dockerfile
+    container_name: microphoto
+    depends_on:
+      - photodb
+    networks:
+      - frontend
+      - backend
+
+  microtagger:
+    <<: *common-settings
+    build:
+      context: .
+      dockerfile: microTagger/dockerfile
+    container_name: microtagger
+    networks:
+      - backend
+
+  userdb:
+    <<: *common-settings
+    build:
+      context: .
+      dockerfile: UserDatabaseDocker/dockerfile
+    container_name: userdb
+    networks:
+      - backend
+    volumes:
+      - user_data:/data/db
+
+  photodb:
+    <<: *common-settings
+    build:
+      context: .
+      dockerfile: PhotoDatabaseDocker/dockerfile
+    container_name: photodb
+    networks:
+      - backend
+    volumes:
+      - photo_data:/data/db
+
+volumes:
+  photo_data:
+  user_data:
+
+networks:
+  backend:
+  frontend:
+

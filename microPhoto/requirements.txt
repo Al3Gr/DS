@@ -29,9 +29,6 @@ PyJWT==2.8.0
 pymongo==4.6.1
 requests==2.31.0
 sympy==1.12
-torch==2.1.1
-torchaudio==2.1.1
-torchvision==0.16.1
 typing_extensions==4.8.0
 urllib3==2.1.0
 Werkzeug==3.0.1
