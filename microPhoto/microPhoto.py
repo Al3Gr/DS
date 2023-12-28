@@ -3,6 +3,7 @@ import jwt
 from photoDB import PhotoDB
 from kafkaClient import KafkaController
 from flask import Flask, request, make_response
+import time
 
 bucketName = "post"
 __db = PhotoDB("DS", "2023")
@@ -18,7 +19,7 @@ def check_token(func):
     def decorator():
         token = request.headers["Authorization"]
         decoded = jwt.decode(token, key= "segreto", algorithms="HS256")
-        if decoded["valid"]:
+        if decoded["expirationTime"] > time.time():
             return func(decoded["username"])
         else:
             return make_response("", 401) #Unauthorized

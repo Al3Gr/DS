@@ -1,6 +1,7 @@
 import jwt
 from flask import Flask, request
 from userDB import UserDB
+import time
 
 app = Flask(__name__)
 
@@ -30,7 +31,7 @@ def login():
     return createToken(username)
 
 def createToken(username):
-    t_data = {"username": f"{username}", "valid": True}
+    t_data = {"username": f"{username}", "expirationTime": time.time() + 3600*2}
     token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
     return token
 
