@@ -1,5 +1,5 @@
 import pymongo
-
+from enum import Enum
 
 class PhotoDB:
 
@@ -8,11 +8,22 @@ class PhotoDB:
         self.db = self.client["dsdb"]
         self.collection = self.db["photos"]
 
-    def addPhoto(self, photo):
-        result = self.collection.insert_one(photo)
+    def addPhoto(self, query):
+        query["status"] = PhotoState.UPLOAD
+        result = self.collection.insert_one(query)
         return result.inserted_id
 
-    def updatePhoto(self, photo_id, status, url=None):
+    def updatePhotoUrl(self, photo_id, url=None):
         _filter = {"_id": photo_id}
-        _update = {"$set": {"status": status, "url": url}}
+        _update = {"$set": {"status": PhotoState.UNTAGGED, "url": url}}
         self.collection.update_one(_filter, _update)
+
+    def updatePhotoTags(self, photo_id, tags):
+        _filter = {"_id": photo_id}
+        _update = {"$set": {"status": PhotoState.TAGGED, "tags": tags}}
+        self.collection.update_one(_filter, _update)
+
+class PhotoState(Enum):
+    UPLOAD = 1
+    UNTAGGED = 2
+    TAGGED = 3

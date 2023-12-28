@@ -15,7 +15,7 @@ def signup():
     result = __db.signup(query)
     if not result:
         return "Error"
-    return "OK"
+    return createToken(username)
 
 
 # entrypoint login
@@ -27,11 +27,12 @@ def login():
     result = __db.login(query)
     if not result:
         return "ERROR"
-    else:
-        t_data = {"username": f"{username}", "valid": True}
-        token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
-        return token
+    return createToken(username)
 
+def createToken(username):
+    t_data = {"username": f"{username}", "valid": True}
+    token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
+    return token
 
 if __name__ == "main":
     app.run()
