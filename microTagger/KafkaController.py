@@ -28,15 +28,16 @@ class KafkaController:
         msg = self.consumer.poll(timeout=5.0)
         if msg is None:
             print("Waiting for message or event/error in poll()")
-            #continue
         elif msg.error():
             print('error: {}'.format(msg.error()))
         else:
             # Check for Kafka message
             record_key = msg.key()
             record_value = msg.value()
-            data = json.loads(record_value)
-            
+            data = json.loads(record_value)  
             return data
+
+    def close(self):
+        self.consumer.close()
 
             

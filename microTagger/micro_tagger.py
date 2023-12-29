@@ -67,8 +67,13 @@ if __name__ == "__main__":
 
     kafkaController = KafkaController()
 
-    while(True):
-        dati = kafkaController.receivePhoto()
-        if dati is not None :
-            with ThreadPoolExecutor() as executor:
-                future = executor.submit(worker, dati)
+    try:
+        while(True):
+            dati = kafkaController.receivePhoto()
+            if dati is not None :
+                with ThreadPoolExecutor() as executor:
+                    future = executor.submit(worker, dati)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        kafkaController.close()
