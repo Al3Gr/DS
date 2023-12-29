@@ -5,35 +5,26 @@ import sys
 class KafkaController:
     topicFoto = "foto"
     topicTag = "tag"
-    nFoto = 0
 
-    def __init__(self, photoDB):
+    def __init__(self):
         self.producer = Producer(bootstrap_servers='localhost:29092')
         self.consumer = Consumer({'bootstrap.servers': 'localhost:29092',
               'group.id': 'group1',
-              'enable.auto.commit': 'false',
+              'enable.auto.commit': 'true',
               # 'auto.offset.reset=earliest' to start reading from the beginning - [latest, earliest, none]
               'auto.offset.reset': 'latest',
               'on_commit': self.commit_completed
               })
-        self.consumer.subscribe([self.topicTag])
-        self.receiveTag(photoDB)
+        self.consumer.subscribe([self.topicFoto])
 
-    def commit_completed(err, partitions):
-        if err:
-            print(str(err))
-        else:
-            print("Committed partition offsets: " + str(partitions))
-
-    def sendForTag(self, photo_id, photo):
+    def produce(self, photo_id, photo_tags):
         try:
-            data = json.dumps({"photo_id": photo_id, "photo_blob": photo})
-            self.producer.produce(self.topicFoto, key="foto" + self.nFoto, value=data)
-            self.nFoto += 1
+            data = json.dumps({"photo_id": photo_id, "photo_tags": photo_tags})
+            self.producer.produce(self.topicTag, key="foto" + photo_id, value=data)
         except BufferError:
             sys.stderr.write('%% Local producer queue is full (%d messages awaiting delivery): try again\n' %len(self.producer))
 
-    def receiveTag(self, photoDB):
+    def receivePhoto(self):
         msg = self.consumer.poll(timeout=5.0)
         if msg is None:
             print("Waiting for message or event/error in poll()")
@@ -46,9 +37,6 @@ class KafkaController:
             record_value = msg.value()
             data = json.loads(record_value)
             
-            photoDB.updatePhotoTags(data["photo_id"], data["photo_tags"])
-
-            self.consumer.commit(asynchronous=True)
-            print("Consumed record with key {} and value {}".format(record_key, record_value))
+            return data
 
             

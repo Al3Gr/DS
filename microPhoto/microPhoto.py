@@ -36,7 +36,7 @@ def upload(username):
     blob = image.stream.read() # questo è il binary dell'immagine
 
     if len(blob) > (1024*1024*2) :
-        return make_response("", 400)
+        return make_response("", 400) #troppo grossa l'immagine
 
     query = {"username": username, "description": description}
     photo_id = __db.addPhoto(query)
@@ -45,7 +45,7 @@ def upload(username):
     )
     __db.updatePhotoUrl(photo_id, photo_id) #sistemare qui il link
     
-    __kafka.sendForTag(blob);
+    __kafka.sendForTag(photo_id, blob);
 
     return make_response("", 200)
 

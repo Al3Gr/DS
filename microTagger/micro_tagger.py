@@ -4,12 +4,31 @@ import random
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
+from concurrent.futures import ThreadPoolExecutor
+import KafkaController
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
 
+def worker(dati):
+    print("Thread in esecuzione")
+    #salva l'immagine sul disco
+    photo_id = dati["photo_id"]
+    photo_blob = dati["photo_blob"]
+    nomeFile = "photo_"+photo_id+".jpg"
 
-def session(filename, model, preprocess):
+    file = open(nomeFile, "w")
+    file.write(photo_blob)
+    file.close()
+
+    dictionaryCatProb = inferenza(nomeFile, model=model, preprocess=preprocess)
+    
+    print("Send response to client")
+    kafkaController.produce(photo_id, dictionaryCatProb)
+
+    os.remove(nomeFile)
+
+def inferenza(filename, model, preprocess):
     input_image = Image.open(filename)
     input_tensor = preprocess(input_image)
     input_batch = input_tensor.unsqueeze(0)
@@ -22,18 +41,16 @@ def session(filename, model, preprocess):
 
     probabilities = torch.nn.functional.softmax(output[0], dim=0)
 
-    with open("imagenet_classes.txt", "r") as f:
-        categories = [s.strip() for s in f.readlines()]
+    dictionaryCatProb = {}
+    topK_prob, topK_catid = torch.topk(probabilities, 1)
+    for i in range(topK_prob.size(0)):
+        dictionaryCatProb[categories[topK_catid[i]]] = topK_prob[i].item()
+        print(categories[topK_catid[i]], topK_prob[i].item())
 
-    top5_prob, top5_catid = torch.topk(probabilities, 1)
-    for i in range(top5_prob.size(0)):
-        print(categories[top5_catid[i]], top5_prob[i].item())
-
-    print("Send response to client")
-    os.remove(filename)
+    return dictionaryCatProb
 
 
-def main():
+if __name__ == "__main__":
     model = alexnet(weights=AlexNet_Weights.DEFAULT)
     model.eval()
 
@@ -44,12 +61,14 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                             std=[0.229, 0.224, 0.225]),
     ])
-    ## INSERIRE KAFKA E LA RICEZIONE DELL'IMMAGINE
-    seed = random.randint(0, 100)
-    session(f"image_server_{seed}.jpeg", model=model, preprocess=preprocess)
 
+    with open("imagenet_classes.txt", "r") as f:
+        categories = [s.strip() for s in f.readlines()]
 
-if __name__ == "__main__":
-    main()
+    kafkaController = KafkaController()
 
-
+    while(True):
+        dati = kafkaController.receivePhoto()
+        if dati is not None :
+            with ThreadPoolExecutor() as executor:
+                future = executor.submit(worker, dati)
