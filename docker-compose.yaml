@@ -1,3 +1,5 @@
+name: hub
+
 x-common-settings: &common-settings
   restart: always
 
@@ -25,6 +27,7 @@ services:
     container_name: microuser
     depends_on:
       - userdb
+    scale: 3
     networks:
       - frontend
       - backend
@@ -37,6 +40,7 @@ services:
     container_name: microphoto
     depends_on:
       - photodb
+    scale: 3
     networks:
       - frontend
       - backend
@@ -47,6 +51,7 @@ services:
       context: .
       dockerfile: microTagger/dockerfile
     container_name: microtagger
+    scale: 3
     networks:
       - backend
 
