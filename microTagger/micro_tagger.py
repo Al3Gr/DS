@@ -1,11 +1,10 @@
 import torch
 import os
-import random
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
 from concurrent.futures import ThreadPoolExecutor
-import KafkaController
+from KafkaController import KafkaController
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context

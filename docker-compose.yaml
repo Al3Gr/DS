@@ -13,9 +13,9 @@ services:
     ports:
       - 80:80
     depends_on:
-      #- microphoto
+      - microphoto
       - microuser
-      #- microtagger
+      - microtagger
     networks:
       - frontend
 
@@ -24,37 +24,81 @@ services:
     build:
       context: microUser
       dockerfile: dockerfile
-    #container_name: microuser
     depends_on:
       - userdb
     deploy:
-      replicas: 3
+      replicas: 1
     networks:
       - frontend
       - backend
 
-#  microphoto:
-#    <<: *common-settings
-#    build:
-#      context: microPhoto
-#      dockerfile: dockerfile
-#    container_name: microphoto
-#    depends_on:
-#      - photodb
-#    scale: 3
-#    networks:
-#      - frontend
-#      - backend
-#
-#  microtagger:
-#    <<: *common-settings
-#    build:
-#      context: .
-#      dockerfile: microTagger/dockerfile
-#    container_name: microtagger
-#    scale: 3
-#    networks:
-#      - backend
+  microphoto:
+    <<: *common-settings
+    build:
+      context: microPhoto
+      dockerfile: dockerfile
+    depends_on:
+      - photodb
+      - kafka
+    deploy:
+      replicas: 1
+    networks:
+      - frontend
+      - backend
+
+  microtagger:
+    <<: *common-settings
+    build:
+      context: microTagger
+      dockerfile: dockerfile
+    depends_on:
+      - kafka
+    deploy:
+      replicas: 1
+    networks:
+      - backend
+
+  zookeeper:
+    <<: *common-settings
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - backend
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    <<: *common-settings
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    networks:
+      - backend
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  minio:
+    <<: *common-settings
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: username
+      MINIO_ROOT_PASSWORD: password
+      MINIO_ROOT_URL:
+    networks:
+      - backend
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address 0.0.0.0:9001
 
   userdb:
     <<: *common-settings
@@ -85,6 +129,7 @@ services:
 volumes:
   photo_data:
   user_data:
+  minio_data:
 
 networks:
   backend:
