@@ -3,5 +3,5 @@ WORKDIR /usr/src/app
 COPY . .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-EXPOSE 80
-CMD ["python", "microPhoto.py"]
+RUN pip install Flask --upgrade
+CMD ["flask","--app", "microPhoto", "run", "--host=0.0.0.0"]

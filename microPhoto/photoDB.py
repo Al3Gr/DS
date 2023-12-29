@@ -4,7 +4,7 @@ from enum import Enum
 class PhotoDB:
 
     def __init__(self, username, pwd):
-        self.client = pymongo.MongoClient("mongodb://localhost:9081/", username=username, password=pwd)
+        self.client = pymongo.MongoClient("mongodb://photodb:27017/", username=username, password=pwd)
         self.db = self.client["dsdb"]
         self.collection = self.db["photos"]
 

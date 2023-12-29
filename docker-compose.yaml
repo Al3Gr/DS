@@ -6,61 +6,64 @@ x-common-settings: &common-settings
 services:
   apigw:
     <<: *common-settings
-    image: nginx:latest
+    build:
+      context: nginx
+      dockerfile: dockerfile
     container_name: apigw
     ports:
       - 80:80
     depends_on:
-      - microphoto
+      #- microphoto
       - microuser
-      - microtagger
-    volumes:
-      - ../nginx/routing.conf:/etc/nginx/conf.d/routing.conf
+      #- microtagger
     networks:
       - frontend
 
   microuser:
     <<: *common-settings
     build:
-      context: .
-      dockerfile: microUser/dockerfile
-    container_name: microuser
+      context: microUser
+      dockerfile: dockerfile
+    #container_name: microuser
     depends_on:
       - userdb
-    scale: 3
+    deploy:
+      replicas: 3
     networks:
       - frontend
       - backend
 
-  microphoto:
-    <<: *common-settings
-    build:
-      context: .
-      dockerfile: microPhoto/dockerfile
-    container_name: microphoto
-    depends_on:
-      - photodb
-    scale: 3
-    networks:
-      - frontend
-      - backend
-
-  microtagger:
-    <<: *common-settings
-    build:
-      context: .
-      dockerfile: microTagger/dockerfile
-    container_name: microtagger
-    scale: 3
-    networks:
-      - backend
+#  microphoto:
+#    <<: *common-settings
+#    build:
+#      context: microPhoto
+#      dockerfile: dockerfile
+#    container_name: microphoto
+#    depends_on:
+#      - photodb
+#    scale: 3
+#    networks:
+#      - frontend
+#      - backend
+#
+#  microtagger:
+#    <<: *common-settings
+#    build:
+#      context: .
+#      dockerfile: microTagger/dockerfile
+#    container_name: microtagger
+#    scale: 3
+#    networks:
+#      - backend
 
   userdb:
     <<: *common-settings
     build:
-      context: .
-      dockerfile: UserDatabaseDocker/dockerfile
+      context: UserDatabaseDocker
+      dockerfile: dockerfile
     container_name: userdb
+    ports:
+      - 9999:27017
     networks:
       - backend
     volumes:
@@ -69,9 +72,11 @@ services:
   photodb:
     <<: *common-settings
     build:
-      context: .
-      dockerfile: PhotoDatabaseDocker/dockerfile
+      context: PhotoDatabaseDocker
+      dockerfile: dockerfile
     container_name: photodb
+    ports:
+      - 9998:27017
     networks:
       - backend
     volumes:

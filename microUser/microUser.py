@@ -7,11 +7,11 @@ app = Flask(__name__)
 
 __db = UserDB("DS", "2023")
 
-
 @app.post("/signup")
 def signup():
-    username = request.form["username"]
-    password = request.form["password"]
+    request_data = request.get_json()
+    username = request_data["username"]
+    password = request_data["password"]
     query = {"username": username, "password": password}
     result = __db.signup(query)
     if not result:
@@ -22,8 +22,9 @@ def signup():
 # entrypoint login
 @app.post("/login")
 def login():
-    username = request.form["username"]
-    password = request.form["password"]
+    request_data = request.get_json()
+    username = request_data["username"]
+    password = request_data["password"]
     query = {"username": username, "password": password}
     result = __db.login(query)
     if not result:
@@ -34,6 +35,7 @@ def createToken(username):
     t_data = {"username": f"{username}", "expirationTime": time.time() + 3600*2}
     token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
     return token
+
 
 if __name__ == "main":
     app.run()

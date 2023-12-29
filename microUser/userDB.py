@@ -4,7 +4,7 @@ from pymongo import MongoClient, errors
 class UserDB:
 
     def __init__(self, username, pwd):
-        self.client = MongoClient("mongodb://localhost:9080/", username=username, password=pwd)
+        self.client = MongoClient("mongodb://userdb:27017/", username=username, password=pwd)
         self.db = self.client["dsdb"]
         self.collection = self.db["users"]
 
