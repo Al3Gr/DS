@@ -44,6 +44,7 @@ services:
     depends_on:
       - photodb
       - kafka
+      - init-kafka
     deploy:
       replicas: 1
     networks:
@@ -97,6 +98,26 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  init-kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    networks:
+      - backend
+    entrypoint: ['/bin/sh', '-c']
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server hub-kafka-1:9092 --list
+      
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server hub-kafka-1:9092 --create --if-not-exists --topic foto --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server hub-kafka-1:9092 --create --if-not-exists --topic tag --replication-factor 1 --partitions 1
+      
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server hub-kafka-1:9092 --list
+      "
 
   minio:
     <<: *common-settings

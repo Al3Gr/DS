@@ -6,9 +6,10 @@ import threading
 class KafkaController:
     topicFoto = "foto"
     topicTag = "tag"
-    nFoto = 0
+
 
     def __init__(self, endpoint, photoDB):
+        self.nFoto = 0
         self.producer = Producer({'bootstrap.servers': endpoint})
         self.consumer = Consumer({'bootstrap.servers': endpoint,
               'group.id': 'group1',
@@ -31,7 +32,7 @@ class KafkaController:
     def sendForTag(self, photo_id, photo):
         try:
             data = json.dumps({"photo_id": photo_id, "photo_blob": photo})
-            self.producer.produce(self.topicFoto, key="foto" + self.nFoto, value=data)
+            self.producer.produce(self.topicFoto, key="foto" + str(self.nFoto), value=data)
             self.nFoto += 1
         except BufferError:
             sys.stderr.write('%% Local producer queue is full (%d messages awaiting delivery): try again\n' %len(self.producer))
