@@ -2,10 +2,11 @@ import jwt
 from flask import Flask, request
 from userDB import UserDB
 import time
+import os
 
 app = Flask(__name__)
 
-__db = UserDB("DS", "2023")
+__db = UserDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
 
 @app.post("/signup")
 def signup():

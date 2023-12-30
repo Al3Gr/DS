@@ -6,9 +6,9 @@ class KafkaController:
     topicFoto = "foto"
     topicTag = "tag"
 
-    def __init__(self):
-        self.producer = Producer({'bootstrap.servers': 'hub-kafka-1:29092'})
-        self.consumer = Consumer({'bootstrap.servers': 'hub-kafka-1:29092',
+    def __init__(self, endpoint):
+        self.producer = Producer({'bootstrap.servers': endpoint})
+        self.consumer = Consumer({'bootstrap.servers': endpoint,
               'group.id': 'group1',
               'enable.auto.commit': 'true',
               # 'auto.offset.reset=earliest' to start reading from the beginning - [latest, earliest, none]

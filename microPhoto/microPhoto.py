@@ -4,14 +4,15 @@ from photoDB import PhotoDB
 from kafkaClient import KafkaController
 from flask import Flask, request, make_response
 import time
+import os
 
 bucketName = "post"
-__db = PhotoDB("DS", "2023")
-__kafka = KafkaController(__db)
+__db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
+__kafka = KafkaController(os.environ["kafka_endpoint"], __db)
 client = Minio (
-    "play.min.io",
-    access_key="chiaveAccesso",
-    secret_key="secretKey",
+    os.environ["minio_endpoint"],
+    access_key = os.environ["minio_user"],
+    secret_key = os.environ["minio_pwd"],
 )
 app = Flask(__name__)
 
