@@ -50,7 +50,7 @@ def upload(username):
     )
     __db.updatePhotoUrl(photo_id, photo_id) #sistemare qui il link
     
-    __kafka.sendForTag(str(photo_id), str(blob))
+    __kafka.sendForTag(str(photo_id), blob.decode('latin1'))
 
     return make_response("", 200)
 

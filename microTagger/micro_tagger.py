@@ -13,10 +13,10 @@ def worker(dati):
     print("Thread in esecuzione")
     #salva l'immagine sul disco
     photo_id = dati["photo_id"]
-    photo_blob = dati["photo_blob"]
+    photo_blob = dati["photo_blob"].encode('latin1')
     nomeFile = "photo_"+photo_id+".jpg"
 
-    file = open(nomeFile, "w")
+    file = open(nomeFile, "wb")
     file.write(photo_blob)
     file.close()
 
@@ -67,11 +67,11 @@ if __name__ == "__main__":
     kafkaController = KafkaController(os.environ["kafka_endpoint"])
 
     try:
-        while(True):
+        while True:
             dati = kafkaController.receivePhoto()
-            if dati is not None :
+            if dati is not None:
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, args=(dati,))
+                    future = executor.submit(worker, dati)
     except KeyboardInterrupt:
         pass
     finally:

@@ -59,19 +59,20 @@ services:
       - minio_user=username
       - minio_pwd=password
 
-#  microtagger:
-#    <<: *common-settings
-#    build:
-#      context: microTagger
-#      dockerfile: dockerfile
-#    depends_on:
-#      - kafka
-#    deploy:
-#      replicas: 1
-#    networks:
-#      - backend
-#    environment:
-#      - kafka_endpoint=hub-kafka-1:9092
+  microtagger:
+    <<: *common-settings
+    build:
+      context: microTagger
+      dockerfile: dockerfile
+    depends_on:
+      - kafka
+      - init-kafka
+    deploy:
+      replicas: 1
+    networks:
+      - backend
+    environment:
+      - kafka_endpoint=hub-kafka-1:9092
 
   zookeeper:
     <<: *common-settings

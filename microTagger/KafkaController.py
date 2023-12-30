@@ -3,10 +3,10 @@ import json
 import sys
 
 class KafkaController:
-    topicFoto = "foto"
-    topicTag = "tag"
 
     def __init__(self, endpoint):
+        self.topicFoto = "foto"
+        self.topicTag = "tag"
         self.producer = Producer({'bootstrap.servers': endpoint})
         self.consumer = Consumer({'bootstrap.servers': endpoint,
               'group.id': 'group1',

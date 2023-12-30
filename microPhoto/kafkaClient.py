@@ -1,14 +1,14 @@
 from confluent_kafka import Consumer, Producer
+from bson.objectid import ObjectId
 import json
 import sys
 import threading
 
 class KafkaController:
-    topicFoto = "foto"
-    topicTag = "tag"
-
 
     def __init__(self, endpoint, photoDB):
+        self.topicFoto = "foto"
+        self.topicTag = "tag"
         self.nFoto = 0
         self.producer = Producer({'bootstrap.servers': endpoint})
         self.consumer = Consumer({'bootstrap.servers': endpoint,
@@ -19,11 +19,10 @@ class KafkaController:
               'on_commit': self.commit_completed
               })
         self.consumer.subscribe([self.topicTag])
-
-        thread = threading.Thread(target=self.receiveTag, args=(photoDB,))
+        thread = threading.Thread(target=self.receiveTag, args=[photoDB])
         thread.start()
 
-    def commit_completed(err, partitions):
+    def commit_completed(self, err, partitions):
         if err:
             print(str(err))
         else:
@@ -52,15 +51,14 @@ class KafkaController:
                     record_value = msg.value()
                     data = json.loads(record_value)
                     
-                    photoDB.updatePhotoTags(data["photo_id"], data["photo_tags"])
+                    photoDB.updatePhotoTags(ObjectId(data["photo_id"]), data["photo_tags"])
 
                     self.consumer.commit(asynchronous=True)
                     print("Consumed record with key {} and value {}".format(record_key, record_value))
         except KeyboardInterrupt:
             pass
         finally:
-            # Leave group and commit final offsets
-            self.client.close()
+            self.consumer.close()
 
 
             
