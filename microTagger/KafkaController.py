@@ -12,8 +12,7 @@ class KafkaController:
               'group.id': 'group1',
               'enable.auto.commit': 'true',
               # 'auto.offset.reset=earliest' to start reading from the beginning - [latest, earliest, none]
-              'auto.offset.reset': 'latest',
-              'on_commit': self.commit_completed
+              'auto.offset.reset': 'latest'
               })
         self.consumer.subscribe([self.topicFoto])
 
