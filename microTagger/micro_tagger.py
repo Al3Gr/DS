@@ -71,7 +71,7 @@ if __name__ == "__main__":
             dati = kafkaController.receivePhoto()
             if dati is not None :
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, dati)
+                    future = executor.submit(worker, args=(dati,))
     except KeyboardInterrupt:
         pass
     finally:

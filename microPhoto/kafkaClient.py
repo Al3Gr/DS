@@ -19,7 +19,7 @@ class KafkaController:
               })
         self.consumer.subscribe([self.topicTag])
 
-        thread = threading.Thread(target=self.receiveTag, args=photoDB)
+        thread = threading.Thread(target=self.receiveTag, args=(photoDB,))
         thread.start()
 
     def commit_completed(err, partitions):
