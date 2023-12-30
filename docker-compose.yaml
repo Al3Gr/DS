@@ -15,7 +15,7 @@ services:
     depends_on:
       - microphoto
       - microuser
-      - microtagger
+      #- microtagger
     networks:
       - frontend
 
@@ -53,24 +53,24 @@ services:
       - mongo_connection=mongodb://photodb:27017/
       - mongo_user=DS
       - mongo_pwd=2023
-      - kafka_endpoint=hub-kafka-1:29092
-      - minio_endpoint=miniomicro:9000
+      - kafka_endpoint=hub-kafka-1:9092
+      - minio_endpoint=hub-minio-1:9000
       - minio_user=username
       - minio_pwd=password
 
-  microtagger:
-    <<: *common-settings
-    build:
-      context: microTagger
-      dockerfile: dockerfile
-    depends_on:
-      - kafka
-    deploy:
-      replicas: 1
-    networks:
-      - backend
-    environment:
-      - kafka_endpoint=hub-kafka-1:29092
+#  microtagger:
+#    <<: *common-settings
+#    build:
+#      context: microTagger
+#      dockerfile: dockerfile
+#    depends_on:
+#      - kafka
+#    deploy:
+#      replicas: 1
+#    networks:
+#      - backend
+#    environment:
+#      - kafka_endpoint=hub-kafka-1:9092
 
   zookeeper:
     <<: *common-settings
@@ -93,8 +93,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://hub-kafka-1:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://hub-kafka-1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 

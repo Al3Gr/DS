@@ -5,6 +5,7 @@ from kafkaClient import KafkaController
 from flask import Flask, request, make_response
 import time
 import os
+import io
 
 bucketName = "post"
 __db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
@@ -13,7 +14,10 @@ client = Minio (
     os.environ["minio_endpoint"],
     access_key = os.environ["minio_user"],
     secret_key = os.environ["minio_pwd"],
+    secure=False
 )
+if not client.bucket_exists(bucketName):
+    client.make_bucket(bucketName)
 app = Flask(__name__)
 
 def check_token(func):
@@ -42,11 +46,11 @@ def upload(username):
     query = {"username": username, "description": description}
     photo_id = __db.addPhoto(query)
     client.put_object(
-        "asiatrip", photo_id, image.stream, len(blob) 
+        "post", str(photo_id), io.BytesIO(blob), len(blob)
     )
     __db.updatePhotoUrl(photo_id, photo_id) #sistemare qui il link
     
-    __kafka.sendForTag(photo_id, blob);
+    __kafka.sendForTag(str(photo_id), blob)
 
     return make_response("", 200)
 
@@ -55,10 +59,6 @@ def upload(username):
 def get_photo():
     pass
 
-def initMinio():
-    if not client.bucket_exists(bucketName):
-        client.make_bucket(bucketName)
 
 if __name__ == "__main__":
     app.run()
-    initMinio()
