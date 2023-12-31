@@ -23,6 +23,9 @@ class PhotoDB:
         _update = {"$set": {"status": PhotoState.TAGGED.name, "tags": tags}}
         self.collection.update_one(_filter, _update)
 
+    def getPhotos(self, query, skip):
+        return self.collection.find(query).skip(skip).limit(10)
+
 class PhotoState(Enum):
     UPLOAD = 1
     UNTAGGED = 2
