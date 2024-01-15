@@ -33,16 +33,19 @@ if not client.bucket_exists(bucketName):
     }
     client.set_bucket_policy(bucketName, json.dumps(readonlyobject_policy))
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024*2
+
 
 def check_token(func):
     def decorator():
         token = request.headers["Authorization"]
-        decoded = jwt.decode(token, key= "segreto", algorithms="HS256")
+        decoded = jwt.decode(token, key=os.environ["token_secret"], algorithms="HS256")
         if decoded["expirationTime"] > time.time():
             return func(decoded["username"])
         else:
             return make_response("", 401) #Unauthorized
     return decorator
+
 
 @app.post("/upload")
 @check_token
@@ -54,8 +57,8 @@ def upload(username):
     image = request.files['image'] # questo è come ottenere il file
     blob = image.stream.read() # questo è il binary dell'immagine
 
-    if len(blob) > (1024*1024*2) :
-        return make_response("", 400) #troppo grossa l'immagine
+    # if len(blob) > (1024*1024*2) :
+        # return make_response("", 400) troppo grossa l'immagine
 
     query = {"username": username, "description": description, "time": time.time()}
     photo_id = __db.addPhoto(query)

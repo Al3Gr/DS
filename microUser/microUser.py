@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 __db = UserDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
 
+
 @app.post("/signup")
 def signup():
     request_data = request.get_json()
@@ -20,7 +21,6 @@ def signup():
     return createToken(username)
 
 
-# entrypoint login
 @app.post("/login")
 def login():
     request_data = request.get_json()
@@ -32,9 +32,10 @@ def login():
         return "ERROR"
     return createToken(username)
 
+
 def createToken(username):
     t_data = {"username": f"{username}", "expirationTime": time.time() + 3600*2}
-    token = jwt.encode(payload=t_data, key="segreto", algorithm="HS256")
+    token = jwt.encode(payload=t_data, key=os.environ["token_secret"], algorithm="HS256")
     return token
 
 

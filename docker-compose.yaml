@@ -32,6 +32,7 @@ services:
       - frontend
       - backend
     environment:
+      - token_secret=metro
       - mongo_connection=mongodb://userdb:27017/
       - mongo_user=DS
       - mongo_pwd=2023
@@ -51,6 +52,7 @@ services:
       - frontend
       - backend
     environment:
+      - token_secret=metro
       - mongo_connection=mongodb://photodb:27017/
       - mongo_user=DS
       - mongo_pwd=2023
