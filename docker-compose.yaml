@@ -1,7 +1,7 @@
 name: hub
 
 x-common-settings: &common-settings
-  restart: always
+  restart: none
 
 services:
   apigw:
@@ -15,7 +15,6 @@ services:
     depends_on:
       - microphoto
       - microuser
-      #- microtagger
     networks:
       - frontend
 
@@ -75,6 +74,22 @@ services:
       - backend
     environment:
       - kafka_endpoint=hub-kafka-1:9092
+
+#  microtagger2:
+#    <<: *common-settings
+#    build:
+#      context: microTagger
+#      dockerfile: ../m.dockerfile
+#    depends_on:
+#      - kafka
+#      - init-kafka
+#    deploy:
+#      replicas: 1
+#    networks:
+#      - backend
+#    environment:
+#      - kafka_endpoint=hub-kafka-1:9092
+#    command: ["python", "micro_tagger.py"]
 
   zookeeper:
     <<: *common-settings
