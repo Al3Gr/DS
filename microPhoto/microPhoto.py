@@ -12,7 +12,7 @@ from bson.json_util import dumps
 bucketName = "post"
 __db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
 __kafka = KafkaController(os.environ["kafka_endpoint"], __db)
-client = Minio (
+client = Minio(
     os.environ["minio_endpoint"],
     access_key = os.environ["minio_user"],
     secret_key = os.environ["minio_pwd"],
@@ -33,7 +33,7 @@ if not client.bucket_exists(bucketName):
     }
     client.set_bucket_policy(bucketName, json.dumps(readonlyobject_policy))
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024*2
+app.config['MAX_CONTENT_LENGTH'] = 153600
 
 
 def check_token(func):
@@ -63,7 +63,7 @@ def upload(username):
     query = {"username": username, "description": description, "time": time.time()}
     photo_id = __db.addPhoto(query)
     client.put_object(
-        bucketName, str(photo_id), io.BytesIO(blob), len(blob)
+        bucketName, str(photo_id)+".jpeg", io.BytesIO(blob), len(blob)
     )
     __db.updatePhotoUrl(photo_id,  bucketName + "/" + str(photo_id)) #sistemare qui il link
     

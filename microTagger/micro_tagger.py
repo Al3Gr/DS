@@ -5,6 +5,7 @@ from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
 from concurrent.futures import ThreadPoolExecutor
 from KafkaController import KafkaController
+from io import BytesIO
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
@@ -14,21 +15,17 @@ def worker(dati):
     #salva l'immagine sul disco
     photo_id = dati["photo_id"]
     photo_blob = dati["photo_blob"].encode('latin1')
-    nomeFile = "photo_"+photo_id+".jpg"
+    buffer = BytesIO()
+    buffer.write(photo_blob)
 
-    file = open(nomeFile, "wb")
-    file.write(photo_blob)
-    file.close()
-
-    dictionaryCatProb = inferenza(nomeFile, model=model, preprocess=preprocess)
+    dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
     
     print("Send response to client")
     kafkaController.produce(photo_id, dictionaryCatProb)
 
-    os.remove(nomeFile)
 
-def inferenza(filename, model, preprocess):
-    input_image = Image.open(filename)
+def inferenza(buffer, model, preprocess):
+    input_image = Image.open(buffer)
     input_tensor = preprocess(input_image)
     input_batch = input_tensor.unsqueeze(0)
 
