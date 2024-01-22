@@ -1,7 +1,7 @@
 name: hub
 
 x-common-settings: &common-settings
-  restart: none
+  restart: on-failure
 
 services:
   apigw:
@@ -22,7 +22,7 @@ services:
     <<: *common-settings
     build:
       context: microUser
-      dockerfile: dockerfile
+      dockerfile: ../dockerfile
     depends_on:
       - userdb
     deploy:
@@ -35,12 +35,13 @@ services:
       - mongo_connection=mongodb://userdb:27017/
       - mongo_user=DS
       - mongo_pwd=2023
+    command: ["flask","--app", "microUser", "run", "--host=0.0.0.0"]
 
   microphoto:
     <<: *common-settings
     build:
       context: microPhoto
-      dockerfile: dockerfile
+      dockerfile: ../dockerfile
     depends_on:
       - photodb
       - kafka
@@ -59,12 +60,13 @@ services:
       - minio_endpoint=hub-minio-1:9000
       - minio_user=username
       - minio_pwd=password
+    command: ["flask","--app", "microPhoto", "run", "--host=0.0.0.0"]
 
   microtagger:
     <<: *common-settings
     build:
       context: microTagger
-      dockerfile: dockerfile
+      dockerfile: ../dockerfile
     depends_on:
       - kafka
       - init-kafka
@@ -74,22 +76,7 @@ services:
       - backend
     environment:
       - kafka_endpoint=hub-kafka-1:9092
-
-#  microtagger2:
-#    <<: *common-settings
-#    build:
-#      context: microTagger
-#      dockerfile: ../m.dockerfile
-#    depends_on:
-#      - kafka
-#      - init-kafka
-#    deploy:
-#      replicas: 1
-#    networks:
-#      - backend
-#    environment:
-#      - kafka_endpoint=hub-kafka-1:9092
-#    command: ["python", "micro_tagger.py"]
+    command: ["python", "micro_tagger.py"]
 
   zookeeper:
     <<: *common-settings
@@ -150,6 +137,7 @@ services:
       MINIO_ROOT_URL:
     networks:
       - backend
+      - frontend
     volumes:
       - minio_data:/data
     command: server /data --console-address 0.0.0.0:9001
