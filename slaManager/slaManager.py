@@ -20,6 +20,9 @@ def create_sla():
 def get_status():
     pass
 
+@app.get("/status/metric")
+def get_statusMetric():
+    pass
 
 @app.get("/violation")
 def get_violation():
