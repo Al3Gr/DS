@@ -26,24 +26,24 @@ def get_status():
 
     for slo in slos:
         nomeMetrica = slo["_id"]
-        min = slo["min"]
-        max = slo["max"]
+        min = float(slo["min"])
+        max = float(slo["max"])
         
         if("aggregation" in slo):
             aggregation = slo["aggregation"]
             aggregationTime = slo["aggregationtime"]
             match aggregation:
-                case ["increase"]:
+                case "increase":
                     query = "increase("+nomeMetrica+"["+ aggregationTime +"])"
-                case ["sum"]:
+                case "sum":
                     query = "sum_over_time("+nomeMetrica+"["+ aggregationTime +"])"
-                case ["avg"]:
+                case "avg":
                     query = "avg_over_time("+nomeMetrica+"["+ aggregationTime +"])"
         else:
             query = nomeMetrica
 
         response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': query})
-        result = response.json()['data']['result']
+        result = float(response.json()['data']['result'][0]['value'][1])
         if (result < min or result > max):
             dictionary[nomeMetrica] = False
         else:
