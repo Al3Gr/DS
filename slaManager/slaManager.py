@@ -9,7 +9,12 @@ __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.enviro
 
 @app.post("/create")
 def create_sla():
-    pass
+    request_data = request.get_json()
+    result = __db.create(request_data)
+    if not result:
+        return make_response("", 400)
+    return make_response("", 200)
+
 
 @app.get("/status")
 def get_status():

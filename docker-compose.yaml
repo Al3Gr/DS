@@ -141,6 +141,22 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
+  slamanager:
+    <<: *common-settings
+    build:
+      context: slaManager
+      dockerfile: ../dockerfile
+    hostname: slamanager
+    networks:
+      - qos
+      - frontend
+    environment:
+      - mongo_connection=mongodb://sladb:27017/
+      - mongo_user=DS
+      - mongo_pwd=2023
+    command: ["flask","--app", "slaManager", "run", "--host=0.0.0.0"]
+
+
   minio:
     <<: *common-settings
     image: minio/minio
@@ -185,10 +201,24 @@ services:
     volumes:
       - photo_data:/data/db
 
+  sladb:
+    <<: *common-settings
+    build:
+      context: SlaDatabaseDocker
+      dockerfile: dockerfile
+    container_name: sladb
+    ports:
+      - 9997:27017
+    networks:
+      - qos
+    volumes:
+      - sla_data:/data/db
+
 volumes:
   photo_data:
   user_data:
   minio_data:
+  sla_data:
 
 networks:
   backend:
