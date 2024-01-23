@@ -14,7 +14,8 @@ from QoSMetrics import QoSMetrics
 #ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def worker(dati, metrics):
+def worker(*args):
+    dati, metrics = args
     client = Minio(
         os.environ["minio_endpoint"],
         access_key=os.environ["minio_user"],
@@ -94,7 +95,7 @@ if __name__ == "__main__":
             dati = kafkaController.receivePhoto()
             if dati is not None:
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, (dati, metrics))
+                    future = executor.submit(worker, dati, metrics)
     except KeyboardInterrupt:
         pass
     finally:
