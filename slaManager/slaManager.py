@@ -52,8 +52,6 @@ def get_status():
     return make_response(dictionary, 200)
 
         
-
-
 @app.get("/status/metric")
 def get_statusMetric():
     metrica = request.args.get("metrica")
