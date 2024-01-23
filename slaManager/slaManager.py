@@ -1,10 +1,11 @@
 from flask import Flask, request, make_response
 from slaDB import SlaDB
 import os
-import prometheus_client
+import requests
 
 app = Flask(__name__)
 __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
+PROMETHEUS = "http://hub-prometheus-1:9090/"
 
 
 @app.post("/create")
@@ -23,9 +24,13 @@ def get_status():
 
     pass
 
+
 @app.get("/status/metric")
 def get_statusMetric():
-    pass
+    metrica = request.args.get("metrica")
+    response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': metrica})
+    result = response.json()['data']['result']
+    make_response(result, 200)
 
 @app.get("/violation")
 def get_violation():
