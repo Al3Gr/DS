@@ -18,6 +18,9 @@ def create_sla():
 
 @app.get("/status")
 def get_status():
+    #instant vector
+    
+
     pass
 
 @app.get("/status/metric")
@@ -26,6 +29,8 @@ def get_statusMetric():
 
 @app.get("/violation")
 def get_violation():
+    #range vector
+
     pass
 
 

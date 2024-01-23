@@ -14,4 +14,9 @@ class SlaDB:
             return True
         except errors.DuplicateKeyError:
             return False
+        
+    def getMetrics(self):
+        #trovo tutte le metriche
+        return self.collection.find() 
+
 
