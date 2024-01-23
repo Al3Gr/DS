@@ -146,6 +146,8 @@ services:
     build:
       context: slaManager
       dockerfile: ../dockerfile
+    ports:
+      - 6000:5000
     hostname: slamanager
     networks:
       - qos
