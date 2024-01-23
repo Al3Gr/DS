@@ -25,7 +25,8 @@ def worker(dati, metrics):
     photo_id = dati["photo_id"]
     photo_name = dati["photo_name"]
     try:
-        photo_blob = client.get_object(os.environ["minio_bucket"], photo_name)
+        response = client.get_object(os.environ["minio_bucket"], photo_name)
+        photo_blob = response.read()
         buffer = BytesIO()
         buffer.write(photo_blob)
 
@@ -47,6 +48,7 @@ def worker(dati, metrics):
 
 def inferenza(buffer, model, preprocess):
     input_image = Image.open(buffer)
+
     input_tensor = preprocess(input_image)
     input_batch = input_tensor.unsqueeze(0)
 
