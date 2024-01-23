@@ -1,7 +1,10 @@
 from flask import Flask, request, make_response
+from slaDB import SlaDB
+import os
 import prometheus_client
 
 app = Flask(__name__)
+__db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
 
 
 @app.post("/create")
