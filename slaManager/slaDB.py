@@ -15,7 +15,7 @@ class SlaDB:
         except errors.DuplicateKeyError:
             return False
         
-    def getMetrics(self):
+    def getSLOS(self):
         #trovo tutte le metriche
         return self.collection.find() 
 

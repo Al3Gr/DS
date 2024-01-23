@@ -19,10 +19,15 @@ def create_sla():
 
 @app.get("/status")
 def get_status():
-    #instant vector
+    slos = __db.getSLOS()
     
+    dictionary = {}
 
-    pass
+    response = requests.get(PROMETHEUS + '/api/v1/query')
+    result = response.json()['data']['result']
+
+    for slo in slos:
+        dictionary[slo._id]=True
 
 
 @app.get("/status/metric")
