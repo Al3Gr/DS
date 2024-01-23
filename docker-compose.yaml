@@ -84,7 +84,7 @@ services:
       - minio_endpoint=hub-minio-1:9000
       - minio_user=username
       - minio_pwd=password
-    command: ["python", "micro_tagger.py"]
+    command: ["python", "-u", "micro_tagger.py"]
 
   zookeeper:
     <<: *common-settings
@@ -193,4 +193,5 @@ volumes:
 networks:
   backend:
   frontend:
+  qos:
 

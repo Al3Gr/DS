@@ -3,6 +3,14 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: provare
+  - job_name: microuser
     static_configs:
-      - targets: ['192.168.1.16:9000']
+      - targets: ['hub-microuser-1:9000']
+
+  - job_name: microphoto
+    static_configs:
+      - targets: ['hub-microphoto-1:9000']
+
+  - job_name: microtagger
+    static_configs:
+      - targets: [ 'hub-microtagger-1:9000' ]
