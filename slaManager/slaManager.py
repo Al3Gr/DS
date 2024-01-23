@@ -28,6 +28,7 @@ def get_status():
 
     for slo in slos:
         dictionary[slo._id]=True
+    return make_response(dictionary, 200)
 
 
 @app.get("/status/metric")
@@ -35,7 +36,7 @@ def get_statusMetric():
     metrica = request.args.get("metrica")
     response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': metrica})
     result = response.json()['data']['result']
-    make_response(result, 200)
+    return make_response(result, 200)
 
 @app.get("/violation")
 def get_violation():
