@@ -9,7 +9,7 @@ import io
 import json
 from bson.json_util import dumps
 
-bucketName = "post"
+bucketName = os.environ["minio_bucket"]
 __db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
 __kafka = KafkaController(os.environ["kafka_endpoint"], __db)
 client = Minio(
@@ -33,7 +33,7 @@ if not client.bucket_exists(bucketName):
     }
     client.set_bucket_policy(bucketName, json.dumps(readonlyobject_policy))
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 153600
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024*2
 
 
 def check_token(func):
@@ -56,18 +56,15 @@ def upload(username):
     description = request.form["description"]
     image = request.files['image'] # questo è come ottenere il file
     blob = image.stream.read() # questo è il binary dell'immagine
-
-    # if len(blob) > (1024*1024*2) :
-        # return make_response("", 400) troppo grossa l'immagine
-
     query = {"username": username, "description": description, "time": time.time()}
     photo_id = __db.addPhoto(query)
+    photo_name = str(photo_id)+".jpeg"
     client.put_object(
-        bucketName, str(photo_id)+".jpeg", io.BytesIO(blob), len(blob)
+        bucketName, photo_name, io.BytesIO(blob), len(blob)
     )
-    __db.updatePhotoUrl(photo_id,  bucketName + "/" + str(photo_id)) #sistemare qui il link
+    __db.updatePhotoUrl(photo_id,  bucketName + "/" + photo_name)
     
-    __kafka.sendForTag(str(photo_id), blob.decode('latin1'))
+    __kafka.sendForTag(str(photo_id), photo_name)
 
     return make_response("", 200)
 

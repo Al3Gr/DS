@@ -30,7 +30,7 @@ class KafkaController:
 
     def sendForTag(self, photo_id, photo):
         try:
-            data = json.dumps({"photo_id": photo_id, "photo_blob": photo})
+            data = json.dumps({"photo_id": photo_id, "photo_name": photo})
             self.producer.produce(self.topicFoto, key="foto" + str(self.nFoto), value=data)
             self.nFoto += 1
         except BufferError:

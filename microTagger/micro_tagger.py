@@ -6,22 +6,35 @@ from torchvision.models import AlexNet_Weights, alexnet
 from concurrent.futures import ThreadPoolExecutor
 from KafkaController import KafkaController
 from io import BytesIO
+from minio import Minio
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
 
-def worker(dati):
-    print("Thread in esecuzione")
-    #salva l'immagine sul disco
-    photo_id = dati["photo_id"]
-    photo_blob = dati["photo_blob"].encode('latin1')
-    buffer = BytesIO()
-    buffer.write(photo_blob)
 
-    dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
-    
-    print("Send response to client")
-    kafkaController.produce(photo_id, dictionaryCatProb)
+def worker(dati):
+    client = Minio(
+        os.environ["minio_endpoint"],
+        access_key=os.environ["minio_user"],
+        secret_key=os.environ["minio_pwd"],
+        secure=False
+    )
+    print("Thread in esecuzione")
+    photo_id = dati["photo_id"]
+    photo_name = dati["photo_name"]
+    try:
+        photo_blob = client.get_object(os.environ["minio_bucket"], photo_name)
+        buffer = BytesIO()
+        buffer.write(photo_blob)
+        dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
+        print("Send response to client")
+        kafkaController.produce(photo_id, dictionaryCatProb)
+    finally:
+        photo_blob.close()
+        photo_blob.release_conn()
+
+
+
 
 
 def inferenza(buffer, model, preprocess):
@@ -49,6 +62,7 @@ def inferenza(buffer, model, preprocess):
 if __name__ == "__main__":
     model = alexnet(weights=AlexNet_Weights.DEFAULT)
     model.eval()
+
 
     preprocess = transforms.Compose([
         transforms.Resize(256),

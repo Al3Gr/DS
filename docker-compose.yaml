@@ -30,6 +30,7 @@ services:
     networks:
       - frontend
       - backend
+      - qos
     environment:
       - token_secret=metro
       - mongo_connection=mongodb://userdb:27017/
@@ -51,7 +52,9 @@ services:
     networks:
       - frontend
       - backend
+      - qos
     environment:
+      - minio_bucket=post
       - token_secret=metro
       - mongo_connection=mongodb://photodb:27017/
       - mongo_user=DS
@@ -74,8 +77,13 @@ services:
       replicas: 1
     networks:
       - backend
+      - qos
     environment:
+      - minio_bucket=post
       - kafka_endpoint=hub-kafka-1:9092
+      - minio_endpoint=hub-minio-1:9000
+      - minio_user=username
+      - minio_pwd=password
     command: ["python", "micro_tagger.py"]
 
   zookeeper:
@@ -123,6 +131,15 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server hub-kafka-1:9092 --list
       "
+  prometheus:
+    <<: *common-settings
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - qos
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
   minio:
     <<: *common-settings
