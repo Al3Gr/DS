@@ -1,5 +1,6 @@
 import torch
 import os
+import time
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
@@ -7,12 +8,13 @@ from concurrent.futures import ThreadPoolExecutor
 from KafkaController import KafkaController
 from io import BytesIO
 from minio import Minio
+from QoSMetrics import QoSMetrics
 
 #import ssl
 #ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def worker(dati):
+def worker(dati, metrics):
     client = Minio(
         os.environ["minio_endpoint"],
         access_key=os.environ["minio_user"],
@@ -26,15 +28,21 @@ def worker(dati):
         photo_blob = client.get_object(os.environ["minio_bucket"], photo_name)
         buffer = BytesIO()
         buffer.write(photo_blob)
+
+        #faccio partire un timer
+        t0 = time.time()
         dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
+        #stoppo il timer
+        t1 = time.time()
+        metrics.setInferenceInfo(t1-t0)
+
         print("Send response to client")
         kafkaController.produce(photo_id, dictionaryCatProb)
+
+
     finally:
         photo_blob.close()
         photo_blob.release_conn()
-
-
-
 
 
 def inferenza(buffer, model, preprocess):
@@ -77,12 +85,14 @@ if __name__ == "__main__":
 
     kafkaController = KafkaController(os.environ["kafka_endpoint"])
 
+    metrics = QoSMetrics()
+
     try:
         while True:
             dati = kafkaController.receivePhoto()
             if dati is not None:
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, dati)
+                    future = executor.submit(worker, (dati, metrics))
     except KeyboardInterrupt:
         pass
     finally:

@@ -8,6 +8,7 @@ import os
 import io
 import json
 from bson.json_util import dumps
+from QoSMetrics import QoSMetrics
 
 bucketName = os.environ["minio_bucket"]
 __db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
@@ -35,6 +36,7 @@ if not client.bucket_exists(bucketName):
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 1024*1024*2
 
+metrics = QoSMetrics()
 
 def check_token(func):
     def decorator():
@@ -46,7 +48,6 @@ def check_token(func):
             return make_response("", 401) #Unauthorized
     return decorator
 
-
 @app.post("/upload")
 @check_token
 def upload(username):
@@ -56,6 +57,8 @@ def upload(username):
     description = request.form["description"]
     image = request.files['image'] # questo è come ottenere il file
     blob = image.stream.read() # questo è il binary dell'immagine
+    metrics.setImageSize(len(blob))
+
     query = {"username": username, "description": description, "time": time.time()}
     photo_id = __db.addPhoto(query)
     photo_name = str(photo_id)+".jpeg"

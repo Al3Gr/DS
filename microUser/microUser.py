@@ -3,11 +3,12 @@ from flask import Flask, request
 from userDB import UserDB
 import time
 import os
+from QoSMetrics import QoSMetrics
 
 app = Flask(__name__)
 
 __db = UserDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
-
+metrics = QoSMetrics()
 
 @app.post("/signup")
 def signup():
@@ -18,6 +19,7 @@ def signup():
     result = __db.signup(query)
     if not result:
         return "Error"
+    metrics.userLogged("signup")
     return createToken(username)
 
 
@@ -30,6 +32,7 @@ def login():
     result = __db.login(query)
     if not result:
         return "ERROR"
+    metrics.userLogged("login")
     return createToken(username)
 
 
