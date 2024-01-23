@@ -1,6 +1,7 @@
 from flask import Flask, request, make_response
 from slaDB import SlaDB
 import os
+import time
 import requests
 
 app = Flask(__name__)
@@ -23,11 +24,34 @@ def get_status():
     
     dictionary = {}
 
-    response = requests.get(PROMETHEUS + '/api/v1/query')
-    result = response.json()['data']['result']
-
     for slo in slos:
-        dictionary[slo._id]=True
+        nomeMetrica = slo["_id"]
+        min = slo["min"]
+        max = slo["max"]
+        
+        if("aggregation" in slo):
+            aggregation = slo["aggregation"]
+            aggregationTime = slo["aggregationtime"]
+            match aggregation:
+                case ["increase"]:
+                    query = "increase("+nomeMetrica+"["+ aggregationTime +"])"
+                case ["sum"]:
+                    query = "sum_over_time("+nomeMetrica+"["+ aggregationTime +"])"
+                case ["avg"]:
+                    query = "avg_over_time("+nomeMetrica+"["+ aggregationTime +"])"
+        else:
+            query = nomeMetrica
+
+        response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': query})
+        result = response.json()['data']['result']
+        if (result < min or result > max):
+            dictionary[nomeMetrica] = False
+        else:
+            dictionary[nomeMetrica] = True
+
+    return make_response(dictionary, 200)
+
+        
 
 
 @app.get("/status/metric")
@@ -35,7 +59,7 @@ def get_statusMetric():
     metrica = request.args.get("metrica")
     response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': metrica})
     result = response.json()['data']['result']
-    make_response(result, 200)
+    return make_response(result, 200)
 
 @app.get("/violation")
 def get_violation():
