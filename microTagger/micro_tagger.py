@@ -35,7 +35,7 @@ def worker(dati, metrics):
         dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
         #stoppo il timer
         t1 = time.time()
-        metrics.setInferenceInfo(t1-t0)
+        metrics.setInferenceInfo(list(dictionaryCatProb.keys())[0], t1-t0)
 
         print("Send response to client")
         kafkaController.produce(photo_id, dictionaryCatProb)
