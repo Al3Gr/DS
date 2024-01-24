@@ -3,6 +3,7 @@ from slaDB import SlaDB
 import os
 import time
 import requests
+import pandas as pd
 
 app = Flask(__name__)
 __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
@@ -62,8 +63,44 @@ def get_statusMetric():
 @app.get("/violation")
 def get_violation():
     #range vector
+    seconds = int(request.args.get("seconds")) #1h = 3600
 
-    pass
+    slos = __db.getSLOS()
+    
+    dictionary = {}
+
+    for slo in slos:
+        nomeMetrica = slo["_id"]
+        min = float(slo["min"])
+        max = float(slo["max"])
+
+        response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time()})
+        result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
+
+        #convertire il risultato in DataFrame di pandas
+        df = pd.DataFrame(result, columns=['Time', 'Value'])
+        df.set_index('Time')
+
+        if("aggregation" in slo):
+            aggregation = slo["aggregation"]
+            aggregationTime = slo["aggregationtime"]
+            match aggregation:
+                case "increase":
+                    tmax = df.rolling(aggregationTime).max()
+                    tmin = df.rolling(aggregationTime).min()
+                    df = tmax - tmin
+                case "sum":
+                    df = df.rolling(aggregationTime).sum()
+                case "avg":
+                    df = df.rolling(aggregationTime).mean()
+
+        dictionary[nomeMetrica] = 0
+        for _, row in df.iterrows():
+            val = row[df.columns[0]]
+            if (val < min or val > max):
+                dictionary[nomeMetrica] += 1
+
+    return make_response(dictionary, 200)
 
 
 @app.get("/prevision")
