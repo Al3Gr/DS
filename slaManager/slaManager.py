@@ -75,7 +75,7 @@ def get_violation():
         max = float(slo["max"])
 
         response = requests.get(PROMETHEUS + '/api/v1/query', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time()})
-        result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
+        result = response.json()['data']['result'][0]['value'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
 
         #convertire il risultato in DataFrame di pandas
         df = pd.DataFrame(result, columns=['Time', 'Value'])
