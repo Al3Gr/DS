@@ -140,6 +140,7 @@ services:
       - qos
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_vol:/prometheus
 
   slamanager:
     <<: *common-settings
