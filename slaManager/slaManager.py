@@ -79,8 +79,8 @@ def get_violation():
 
         #convertire il risultato in DataFrame di pandas
         df = pd.DataFrame(result, columns=['Time', 'Value'])
-        df.set_index('Time')
         df['Time'] = pd.to_datetime(df['Time'], unit='s')
+        df.set_index('Time')
 
         if("aggregation" in slo):
             aggregation = slo["aggregation"]
