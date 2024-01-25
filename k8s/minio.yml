@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: dsbd
+spec:
+  serviceName: "minio-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      nodeSelector:
+        custom-label: "worker"  # Specify the label of your worker nodes
+      containers:
+        - name: minio
+          image: minio/minio
+          ports:
+            - containerPort: 9000
+              name: minio
+            - containerPort: 9001
+              name: console
+          env:
+            - name: MINIO_ROOT_USER
+              value: "username"
+            - name: MINIO_ROOT_PASSWORD
+              value: "password"
+          args: [ "server", "/data", "--console-address", "0.0.0.0:9001"]
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: minio-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: dsbd
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: minio
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+    - name: console
+      protocol: TCP
+      port: 9001
+      targetPort: 9001
+

@@ -222,6 +222,7 @@ volumes:
   user_data:
   minio_data:
   sla_data:
+  prometheus_vol:
 
 networks:
   backend:

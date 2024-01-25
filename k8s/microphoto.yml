@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: microphoto-service
+  namespace: dsbd
+spec:
+  selector:
+    app: microphoto
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microphoto-deploy
+  namespace: dsbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microphoto
+  template:
+    metadata:
+      labels:
+        app: microphoto
+    spec:
+      containers:
+        - name: microphoto-container
+          image: al3gr/microphoto
+          ports:
+            - containerPort: 5000
+          env:
+            - name: token_secret
+              value: metro
+            - name: mongo_connection
+              value: mongodb://photodb:27017/
+            - name: mongo_user
+              value: DS
+            - name: mongo_pwd
+              value: "2023"
+            - name: minio_bucket
+              value: post
+            - name: minio_user
+              value: username
+            - name: minio_pwd
+              value: password
+            - name: minio_endpoint
+              value: ""
+            - name: kafka_endpoint
+              value: ""
+          command: ["flask", "--app", "microPhoto", "run", "--host=0.0.0.0"]
+
