@@ -11,8 +11,11 @@ from bson.json_util import dumps
 from QoSMetrics import QoSMetrics
 
 bucketName = os.environ["minio_bucket"]
+
+metrics = QoSMetrics()
+
 __db = PhotoDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
-__kafka = KafkaController(os.environ["kafka_endpoint"], __db)
+__kafka = KafkaController(os.environ["kafka_endpoint"], __db, metrics)
 client = Minio(
     os.environ["minio_endpoint"],
     access_key = os.environ["minio_user"],
@@ -36,8 +39,6 @@ if not client.bucket_exists(bucketName):
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 1024*1024*2
 
-metrics = QoSMetrics()
-
 def check_token(func):
     def decorator():
         token = request.headers["Authorization"]
@@ -54,12 +55,14 @@ def upload(username):
     if 'image' not in request.files:
         return make_response("", 400)
     
+    startTime = time.time()
+
     description = request.form["description"]
     image = request.files['image'] # questo è come ottenere il file
     blob = image.stream.read() # questo è il binary dell'immagine
     metrics.setImageSize(len(blob))
 
-    query = {"username": username, "description": description, "time": time.time()}
+    query = {"username": username, "description": description, "time": startTime}
     photo_id = __db.addPhoto(query)
     photo_name = str(photo_id)+".jpeg"
     client.put_object(
@@ -67,6 +70,9 @@ def upload(username):
     )
     __db.updatePhotoUrl(photo_id,  bucketName + "/" + photo_name)
     
+    endTime = time.time()
+    metrics.setUploadTime(endTime - startTime)
+
     __kafka.sendForTag(str(photo_id), photo_name)
 
     return make_response("", 200)

@@ -3,10 +3,11 @@ from bson.objectid import ObjectId
 import json
 import sys
 import threading
+import time
 
 class KafkaController:
 
-    def __init__(self, endpoint, photoDB):
+    def __init__(self, endpoint, photoDB, metrics):
         self.topicFoto = "foto"
         self.topicTag = "tag"
         self.nFoto = 0
@@ -19,7 +20,7 @@ class KafkaController:
               'on_commit': self.commit_completed
               })
         self.consumer.subscribe([self.topicTag])
-        thread = threading.Thread(target=self.receiveTag, args=[photoDB])
+        thread = threading.Thread(target=self.receiveTag, args=[photoDB, metrics])
         thread.start()
 
     def commit_completed(self, err, partitions):
@@ -36,7 +37,7 @@ class KafkaController:
         except BufferError:
             sys.stderr.write('%% Local producer queue is full (%d messages awaiting delivery): try again\n' %len(self.producer))
 
-    def receiveTag(self, photoDB):
+    def receiveTag(self, photoDB, metrics):
         try:
             while True:
                 msg = self.consumer.poll(timeout=5.0)
@@ -50,8 +51,11 @@ class KafkaController:
                     record_key = msg.key()
                     record_value = msg.value()
                     data = json.loads(record_value)
-                    
-                    photoDB.updatePhotoTags(ObjectId(data["photo_id"]), data["photo_tags"])
+                    photo_id = data["photo_id"]
+
+                    photoDB.updatePhotoTags(ObjectId(photo_id), data["photo_tags"])
+                    startTime = photoDB.getPhoto(photo_id)['time'] 
+                    metrics.setTotalTime(time.time()-startTime)
 
                     self.consumer.commit(asynchronous=True)
                     print("Consumed record with key {} and value {}".format(record_key, record_value))

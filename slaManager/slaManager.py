@@ -1,5 +1,6 @@
 from flask import Flask, request, make_response
 from slaDB import SlaDB
+import forecast
 import os
 import time
 import requests
@@ -34,6 +35,8 @@ def get_status():
             aggregation = slo["aggregation"]
             aggregationTime = slo["aggregationtime"]
             match aggregation:
+                case "median":
+                    query = "quantile_over_time(0.5, "+nomeMetrica+"["+ aggregationTime +"])"
                 case "increase":
                     query = "increase("+nomeMetrica+"["+ aggregationTime +"])"
                 case "sum":
@@ -83,17 +86,7 @@ def get_violation():
         df = df.set_index('Time')
 
         if("aggregation" in slo):
-            aggregation = slo["aggregation"]
-            aggregationTime = slo["aggregationtime"]
-            match aggregation:
-                case "increase":
-                    tmax = df.rolling(aggregationTime).max()
-                    tmin = df.rolling(aggregationTime).min()
-                    df = tmax - tmin
-                case "sum":
-                    df = df.rolling(aggregationTime).sum()
-                case "avg":
-                    df = df.rolling(aggregationTime).mean()
+            df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
 
         dictionary[nomeMetrica] = 0
         for _, row in df.iterrows():
@@ -103,10 +96,74 @@ def get_violation():
 
     return make_response(dictionary, 200)
 
+def windowRollingTimeSerie(df, aggregation, aggregationTime):
+    match aggregation:
+        case "median":
+            df = df.rolling(aggregationTime).median()
+        case "increase":
+            tmax = df.rolling(aggregationTime).max()
+            tmin = df.rolling(aggregationTime).min()
+            df = tmax - tmin
+        case "sum":
+            df = df.rolling(aggregationTime).sum()
+        case "avg":
+            df = df.rolling(aggregationTime).mean()
+    return df
 
 @app.get("/prevision")
 def prevision():
-    pass
+    #secondi presi nel passato per fare la previsione sul futuro
+    seconds = 10800 #3600*3=3h
+    #durata in secondi della previsione nel futuro
+    futureSeconds = int(request.args.get("seconds"))
+
+    slos = __db.getSLOS()
+
+    #dictionary con nome metrica e probabilità di violazione    
+    dictionary = {}
+
+    for slo in slos:
+        nomeMetrica = slo["_id"]
+        min = float(slo["min"])
+        max = float(slo["max"])
+
+        response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time(), 'step': '15s'})
+        result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
+
+        #convertire il risultato in DataFrame di pandas
+        df = pd.DataFrame(result, columns=['Time', 'Value'])
+        df['Time'] = pd.to_datetime(df['Time'], unit='s')
+        df = df.set_index('Time')
+
+        if("aggregation" in slo):
+            df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
+
+        #qui generare la previsione e l'intervallo
+        confInt = forecast.forecast(df).get_ConfInt()
+        lowInt = confInt["lower Value"]
+        upInt = confInt["upper Value"]
+
+        #qui vedere il massimo della probabilità
+        umax = upInt.max()
+        lmax = lowInt.max()
+        umin = upInt.min()
+        lmin = lowInt.min()
+        distanzasup = umax-lmax
+        distanzainf = umin-lmin
+        psup = 0
+        if umax > max:
+            psup += (umax-max)/distanzasup
+        if lmax < min:
+            psup += (min-lmax)/distanzasup
+        pinf = 0 
+        if umin > max:
+            psup += (umin-max)/distanzainf
+        if lmin < min:
+            psup += (min-lmin)/distanzainf
+
+        dictionary[nomeMetrica] = min(max(psup, pinf), 1)
+
+    return make_response(dictionary, 200)
 
 if __name__ == "__main__":
     app.run()

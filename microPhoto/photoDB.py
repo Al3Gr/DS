@@ -23,6 +23,10 @@ class PhotoDB:
         _update = {"$set": {"status": PhotoState.TAGGED.name, "tags": tags}}
         self.collection.update_one(_filter, _update)
 
+    def getPhoto(self, photo_id):
+        _filter = {"_id": photo_id}
+        return self.collection.find_one(_filter)
+
     def getPhotos(self, query, skip):
         return self.collection.find(query).skip(skip).limit(10)
 
