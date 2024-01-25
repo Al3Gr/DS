@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: photodb
+  namespace: dsbd
+spec:
+  serviceName: "photodb"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: photodb
+  template:
+    metadata:
+      labels:
+        app: photodb
+    spec:
+      containers:
+        - name: photodb
+          image: al3gr/photodb
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: photodb-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: photodb-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+
+---
+
+# mongodb-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: photodb
+  namespace: dsbd
+spec:
+  selector:
+    app: photodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+
