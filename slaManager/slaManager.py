@@ -113,9 +113,9 @@ def windowRollingTimeSerie(df, aggregation, aggregationTime):
 @app.get("/prevision")
 def prevision():
     #secondi presi nel passato per fare la previsione sul futuro
-    seconds = 10800 #3600*3=3h
+    seconds = 604800 #3600*24*7=3h
     #durata in secondi della previsione nel futuro
-    futureSeconds = int(request.args.get("seconds"))
+    futureMinutes = int(request.args.get("minutes"))
 
     slos = __db.getSLOS()
 
@@ -138,8 +138,11 @@ def prevision():
         if("aggregation" in slo):
             df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
 
+        #resamble a 1 minuto
+        df = df.resample('1T').median()
+
         #qui generare la previsione e l'intervallo
-        confInt = forecast.forecast(df).get_ConfInt()
+        confInt = forecast.forecast(nomeMetrica, df).get_ConfInt(futureMinutes)
         lowInt = confInt["lower Value"]
         upInt = confInt["upper Value"]
 
@@ -157,9 +160,9 @@ def prevision():
             psup += (min-lmax)/distanzasup
         pinf = 0 
         if umin > max:
-            psup += (umin-max)/distanzainf
+            pinf += (umin-max)/distanzainf
         if lmin < min:
-            psup += (min-lmin)/distanzainf
+            pinf += (min-lmin)/distanzainf
 
         dictionary[nomeMetrica] = min(max(psup, pinf), 1)
 
