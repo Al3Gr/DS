@@ -83,6 +83,7 @@ def get_violation():
         #convertire il risultato in DataFrame di pandas
         df = pd.DataFrame(result, columns=['Time', 'Value'])
         df['Time'] = pd.to_datetime(df['Time'], unit='s')
+        df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
         df = df.set_index('Time')
 
         if("aggregation" in slo):
@@ -127,19 +128,17 @@ def prevision():
         min = float(slo["min"])
         max = float(slo["max"])
 
-        response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time(), 'step': '15s'})
+        response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time(), 'step': '2m'})
         result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
 
         #convertire il risultato in DataFrame di pandas
         df = pd.DataFrame(result, columns=['Time', 'Value'])
         df['Time'] = pd.to_datetime(df['Time'], unit='s')
+        df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
         df = df.set_index('Time')
 
         if("aggregation" in slo):
             df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
-
-        #resamble a 1 minuto
-        df = df.resample('1T').median()
 
         #qui generare la previsione e l'intervallo
         confInt = forecast.forecast(nomeMetrica, df).get_ConfInt(futureMinutes)
