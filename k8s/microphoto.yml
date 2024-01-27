@@ -10,6 +10,10 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 5000
+      name: pod
+    - port: 9000
+      targetPort: 9000
+      name: exporter
 
 ---
 
@@ -33,6 +37,7 @@ spec:
           image: al3gr/microphoto:1.1
           ports:
             - containerPort: 5000
+            - containerPort: 9000
           env:
             - name: token_secret
               value: metro
