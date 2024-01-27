@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: photodb
+  name: sladb
   namespace: dsbd
 spec:
-  serviceName: "photodb"
+  serviceName: "sladb"
   replicas: 1
   selector:
     matchLabels:
-      app: photodb
+      app: sladb
   template:
     metadata:
       labels:
-        app: photodb
+        app: sladb
     spec:
       containers:
-        - name: photodb
-          image: al3gr/photodb:1.0
+        - name: sladb
+          image: al3gr/sladb
           ports:
             - containerPort: 27017
           volumeMounts:
-            - name: photodb-data
+            - name: sladb-data
               mountPath: /data/db
   volumeClaimTemplates:
     - metadata:
-        name: photodb-data
+        name: sladb-data
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
@@ -37,14 +37,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: photodb
+  name: sladb
   namespace: dsbd
 spec:
   selector:
-    app: photodb
+    app: sladb
   ports:
     - protocol: TCP
       port: 27017
       targetPort: 27017
-  type: NodePort
-

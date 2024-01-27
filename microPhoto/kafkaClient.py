@@ -52,7 +52,7 @@ class KafkaController:
                     record_value = msg.value()
                     data = json.loads(record_value)
                     photo_id = data["photo_id"]
-
+                    print(data)
                     photoDB.updatePhotoTags(ObjectId(photo_id), data["photo_tags"])
                     startTime = photoDB.getPhoto(ObjectId(photo_id))['time']
                     metrics.setTotalTime(time.time()-startTime)

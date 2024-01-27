@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: microuser-service
+  name: sla-service
   namespace: dsbd
 spec:
   selector:
-    app: microuser
+    app: slamanager
   ports:
     - protocol: TCP
       port: 5000
@@ -16,31 +16,29 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: microuser-deploy
+  name: sla-deploy
   namespace: dsbd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: microuser
+      app: slamanager
   template:
     metadata:
       labels:
-        app: microuser
+        app: slamanager
     spec:
       containers:
-        - name: microuser-container
-          image: al3gr/microuser:1.0
+        - name: slamanager-container
+          image: al3gr/slamanager
           ports:
             - containerPort: 5000
           env:
-            - name: token_secret
-              value: metro
             - name: mongo_connection
-              value: mongodb://userdb:27017/
+              value: mongodb://sladb:27017/
             - name: mongo_user
               value: DS
             - name: mongo_pwd
               value: "2023"
-          command: ["flask", "--app", "microUser", "run", "--host=0.0.0.0"]
+          command: ["flask", "--app", "slaManager", "run", "--host=0.0.0.0"]
 
