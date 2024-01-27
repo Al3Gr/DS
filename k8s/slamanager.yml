@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sla-service
+  namespace: dsbd
+spec:
+  selector:
+    app: slamanager
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sla-deploy
+  namespace: dsbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slamanager
+  template:
+    metadata:
+      labels:
+        app: slamanager
+    spec:
+      containers:
+        - name: slamanager-container
+          image: al3gr/slamanager
+          ports:
+            - containerPort: 5000
+          env:
+            - name: mongo_connection
+              value: mongodb://sladb:27017/
+            - name: mongo_user
+              value: DS
+            - name: mongo_pwd
+              value: "2023"
+          command: ["flask", "--app", "slaManager", "run", "--host=0.0.0.0"]
+

@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: microtagger-service
+  namespace: dsbd
+spec:
+  selector:
+    app: microtagger
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microtagger-deploy
+  namespace: dsbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microtagger
+  template:
+    metadata:
+      labels:
+        app: microtagger
+    spec:
+      containers:
+        - name: microtagger-container
+          image: al3gr/microtagger
+          ports:
+            - containerPort: 5000
+          env:
+            - name: minio_bucket
+              value: post
+            - name: minio_user
+              value: username
+            - name: minio_pwd
+              value: password
+            - name: minio_endpoint
+              value: ""
+            - name: kafka_endpoint
+              value: ""
+          command: ["python", "-u", "micro_tagger.py"]
+
