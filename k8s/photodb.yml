@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: photodb
-          image: al3gr/photodb
+          image: al3gr/photodb:1.0
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -46,4 +46,5 @@ spec:
     - protocol: TCP
       port: 27017
       targetPort: 27017
+  type: NodePort
 

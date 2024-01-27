@@ -25,6 +25,10 @@ spec:
   ports:
     - port: 29092
       targetPort: 29092
+      name: internal
+    - port: 9092
+      targetPort: 9092
+      name: external
 ---
 apiVersion: apps/v1
 kind: Deployment

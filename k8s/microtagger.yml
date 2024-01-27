@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: microtagger-container
-          image: al3gr/microtagger
+          image: al3gr/microtagger:1.0
           ports:
             - containerPort: 5000
           env:
@@ -41,8 +41,8 @@ spec:
             - name: minio_pwd
               value: password
             - name: minio_endpoint
-              value: ""
+              value: "minio-service:9000"
             - name: kafka_endpoint
-              value: ""
+              value: "kafka:9092"
           command: ["python", "-u", "micro_tagger.py"]
 

@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: microphoto-container
-          image: al3gr/microphoto
+          image: al3gr/microphoto:1.1
           ports:
             - containerPort: 5000
           env:
@@ -49,8 +49,8 @@ spec:
             - name: minio_pwd
               value: password
             - name: minio_endpoint
-              value: ""
+              value: "minio-service:9000"
             - name: kafka_endpoint
-              value: ""
+              value: "kafka:9092"
           command: ["flask", "--app", "microPhoto", "run", "--host=0.0.0.0"]
 

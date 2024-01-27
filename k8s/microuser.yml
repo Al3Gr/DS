@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: microuser-container
-          image: al3gr/microuser
+          image: al3gr/microuser:1.0
           ports:
             - containerPort: 5000
           env:

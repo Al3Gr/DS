@@ -22,3 +22,10 @@ spec:
                 port:
                   number: 5000
 
+          - pathType: ImplementationSpecific
+            path: /photos(/|$)(.*)
+            backend:
+              service:
+                name: microphoto-service
+                port:
+                  number: 5000
