@@ -34,7 +34,8 @@ spec:
     spec:
       containers:
         - name: microphoto-container
-          image: al3gr/microphoto:1.1
+          image: al3gr/microphoto:1.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
             - containerPort: 9000
