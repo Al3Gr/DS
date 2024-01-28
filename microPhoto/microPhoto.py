@@ -80,16 +80,18 @@ def upload(username):
 
 @app.get("/get_photo")
 def get_photo():
-    request_data = request.get_json()
+    username = request.args.get("username", "")
+    tag = request.args.get("tag", "")
+    skip_s = request.args.get("skip", "")
     query = {}
-    if "username" in request_data:
-        query["username"] = {"$ne": request_data["username"]}
-    if "tag" in request_data:
-        nomeField="tags." + request_data["tag"] 
+    if username:
+        query["username"] = {"$ne": username}
+    if tag:
+        nomeField="tags." + tag
         query[nomeField] = { "$exists": True } #sistemare qui
     skip = 0
-    if "skip" in request_data:
-        skip = request_data["skip"]
+    if skip_s:
+        skip = int(skip_s)
     
     photosInfo = __db.getPhotos(query, skip)
     
