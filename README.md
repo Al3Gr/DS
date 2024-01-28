@@ -15,6 +15,13 @@ per cui si è deciso di creare questo dockerfile comune che viene, di volta in v
 Inoltre, verranno creati anche i volumi per le componenti stateful del progetto (i database e prometheus)  
 e le diverse reti in cui si collocano i microservizi.
 
+Qualora, invece, si volesse effettuare il build del singolo microservizio, posizionarsi nella root specifica  
+e digitare il seguente comando, specificando nome dell'immagine e tag:  
+***docker build -t <image_name>:<image_tag>***
+
+Per creare ed avviare un container basterà digitare il seguente comando:  
+***docker run --name <container_name> -p <local_port>:<container_port> -v <volume_mapping> -e <env_variable> <image_name>:<image_tag>***
+
 ### Istruzioni per il deploy su K8S
 Per effettuare il deploy su K8S in locale utilizzare Kind ed installare Kubectl: 
 su MacOS è possibile installare entrambi utilizzando il gestore dei pacchetti HomeBrew.
