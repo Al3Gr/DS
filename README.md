@@ -44,6 +44,9 @@ Nello specifico, l'ordine in cui fare il deploy è il seguente:
   effettuare il deploy del bucket minio (minio.yml) per la stessa motivazione esposta prima;
 - KAFKA:  
   effetuare il deploy del broker Kafka in quanto essenziale alla comunicazione tra microphoto e microtagger;
+  dopo aver deployato kafka, bisognerà creare i due topic, foto e tag, utilizzati dai due microservizi.
+  Per fare ciò utilizzare il seguente comando, dove bisognerà specificare il nome del pod kafka e il nome del topic che si vuole creare:  
+  ***kubectl -n dsbd  exec -it <kafka-pod-name> -- /bin/bash -c "kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic <topic-tag> --replication-factor 1 --partitions 1"***
 - MICROSERVIZI:  
   infine, sarà possibile effettuare il deploy di tutti i microservizi che gestiranno backend (microuser.yml,
   microphoto.yml e microtagger.yml) e QoS (prometheus.yml e slamanager.yml).

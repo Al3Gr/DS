@@ -31,17 +31,16 @@ spec:
       name: external
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: kafka
   namespace: dsbd
 spec:
+  serviceName: "kafka"
   replicas: 1
   selector:
     matchLabels:
       app: kafka
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -77,8 +76,19 @@ spec:
               value: "1"
             - name: KAFKA_ZOOKEEPER_CONNECT
               value: "zookeeper:2181"
+          volumeMounts:
+            - mountPath: /var/lib/kafka/data
+              name: kafka-data
       hostname: kafka
       restartPolicy: Always
+  volumeClaimTemplates:
+      - metadata:
+          name: kafka-data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 200Mi
 ---
 apiVersion: v1
 kind: Service
