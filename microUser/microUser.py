@@ -1,5 +1,5 @@
 import jwt
-from flask import Flask, request
+from flask import Flask, request, make_response
 from userDB import UserDB
 import time
 import os
@@ -18,7 +18,7 @@ def signup():
     query = {"username": username, "password": password}
     result = __db.signup(query)
     if not result:
-        return "Error"
+        return make_response("Username già usato", 400)
     metrics.userLogged("signup")
     return createToken(username)
 
@@ -31,7 +31,7 @@ def login():
     query = {"username": username, "password": password}
     result = __db.login(query)
     if not result:
-        return "ERROR"
+        return make_response("Utente non presente", 400)
     metrics.userLogged("login")
     return createToken(username)
 

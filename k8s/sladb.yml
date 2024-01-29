@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: sladb
-          image: al3gr/sladb
+          image: al3gr/sladb:1.0
           ports:
             - containerPort: 27017
           volumeMounts:
