@@ -30,6 +30,10 @@ class PhotoDB:
     def getPhotos(self, query, skip):
         return self.collection.find(query).skip(skip).limit(10)
 
+    def deletePhoto(self, photo_id):
+        _filter = {"_id": photo_id}
+        return self.collection.delete_one(_filter)
+
 class PhotoState(Enum):
     UPLOAD = 1
     UNTAGGED = 2

@@ -62,20 +62,29 @@ def upload(username):
     blob = image.stream.read() # questo è il binary dell'immagine
     metrics.setImageSize(len(blob))
 
-    query = {"username": username, "description": description, "time": startTime}
-    photo_id = __db.addPhoto(query)
-    photo_name = str(photo_id)+".jpeg"
-    client.put_object(
-        bucketName, photo_name, io.BytesIO(blob), len(blob)
-    )
-    __db.updatePhotoUrl(photo_id,  bucketName + "/" + photo_name)
-    
-    endTime = time.time()
-    metrics.setUploadTime(endTime - startTime)
+    photo_id = None
+    photo_name = None
+    try:
+        query = {"username": username, "description": description, "time": startTime}
+        photo_id = __db.addPhoto(query)
+        photo_name = str(photo_id)+".jpeg"
+        client.put_object(
+            bucketName, photo_name, io.BytesIO(blob), len(blob)
+        )
+        __db.updatePhotoUrl(photo_id,  bucketName + "/" + photo_name)
+        
+        endTime = time.time()
+        metrics.setUploadTime(endTime - startTime)
 
-    __kafka.sendForTag(str(photo_id), photo_name)
+        __kafka.sendForTag(str(photo_id), photo_name)
 
-    return make_response("", 200)
+        return make_response("", 200)
+    except Exception:
+        if photo_id is not None:
+            #compensazione
+            __db.deletePhoto(photo_id)
+            client.remove_object(bucketName, photo_name)
+        return make_response("", 400)
 
 
 @app.get("/get_photo")

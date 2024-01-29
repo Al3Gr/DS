@@ -10,11 +10,18 @@ class KafkaController:
         self.producer = Producer({'bootstrap.servers': endpoint})
         self.consumer = Consumer({'bootstrap.servers': endpoint,
               'group.id': 'group1',
-              'enable.auto.commit': 'true',
+              'enable.auto.commit': 'false',
               # 'auto.offset.reset=earliest' to start reading from the beginning - [latest, earliest, none]
-              'auto.offset.reset': 'latest'
+              'auto.offset.reset': 'latest',
+              'on_commit': self.commit_completed
               })
         self.consumer.subscribe([self.topicFoto])
+
+    def commit_completed(self, err, partitions):
+        if err:
+            print(str(err))
+        else:
+            print("Committed partition offsets: " + str(partitions))
 
     def produce(self, photo_id, photo_tags):
         try:

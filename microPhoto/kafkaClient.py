@@ -54,10 +54,11 @@ class KafkaController:
                     photo_id = data["photo_id"]
                     print(data)
                     photoDB.updatePhotoTags(ObjectId(photo_id), data["photo_tags"])
+                    self.consumer.commit(asynchronous=True)
+
                     startTime = photoDB.getPhoto(ObjectId(photo_id))['time']
                     metrics.setTotalTime(time.time()-startTime)
-
-                    self.consumer.commit(asynchronous=True)
+                   
                     print("Consumed record with key {} and value {}".format(record_key, record_value))
         except KeyboardInterrupt:
             pass
