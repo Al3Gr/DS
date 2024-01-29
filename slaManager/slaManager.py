@@ -8,7 +8,7 @@ import pandas as pd
 
 app = Flask(__name__)
 __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
-PROMETHEUS = "http://hub-prometheus-1:9090/"
+PROMETHEUS = os.environ["prometheus_server"]
 
 
 @app.post("/create")

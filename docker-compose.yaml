@@ -157,6 +157,7 @@ services:
       - mongo_connection=mongodb://sladb:27017/
       - mongo_user=DS
       - mongo_pwd=2023
+      - prometheus_server=http://hub-prometheus-1:9090/
     command: ["flask","--app", "slaManager", "run", "--host=0.0.0.0"]
 
 
