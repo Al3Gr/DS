@@ -54,7 +54,7 @@ class KafkaController:
                     photo_id = data["photo_id"]
                     print(data)
                     photoDB.updatePhotoTags(ObjectId(photo_id), data["photo_tags"])
-                    self.consumer.commit(asynchronous=True)
+                    self.consumer.commit(message = msg, asynchronous=True)
 
                     startTime = photoDB.getPhoto(ObjectId(photo_id))['time']
                     metrics.setTotalTime(time.time()-startTime)
