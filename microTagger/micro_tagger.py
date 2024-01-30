@@ -1,5 +1,6 @@
 import torch
 import os
+import json
 import time
 from PIL import Image
 from torchvision import transforms
@@ -15,7 +16,8 @@ from QoSMetrics import QoSMetrics
 
 
 def worker(*args):
-    dati, metrics = args
+    msg, metrics = args
+    dati = json.loads(msg.value()) 
     client = Minio(
         os.environ["minio_endpoint"],
         access_key=os.environ["minio_user"],
@@ -39,7 +41,8 @@ def worker(*args):
         metrics.setInferenceInfo(list(dictionaryCatProb.keys())[0], t1-t0)
 
         print("Send response to client")
-        kafkaController.produce(photo_id, dictionaryCatProb)
+        kafkaController.produce(photo_id, dictionaryCatProb) 
+        kafkaController.commitMessage(msg)
 
 
     finally:
@@ -92,10 +95,10 @@ if __name__ == "__main__":
 
     try:
         while True:
-            dati = kafkaController.receivePhoto()
-            if dati is not None:
+            msg = kafkaController.receivePhoto()
+            if msg is not None:
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, dati, metrics)
+                    future = executor.submit(worker, msg, metrics)
     except KeyboardInterrupt:
         pass
     finally:
