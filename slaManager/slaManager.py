@@ -5,6 +5,7 @@ import os
 import time
 import requests
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
@@ -17,6 +18,12 @@ def create_sla():
     result = __db.create(request_data)
     if not result:
         return make_response("", 400)
+    
+    df = downloadTimeSerie(request_data, 604800, "2m")
+    forecastObject = forecast.forecast(request_data["_id"],df)
+    with ThreadPoolExecutor() as executor:
+        executor.submit(forecastObject.trainModel)
+
     return make_response("", 200)
 
 
@@ -77,17 +84,7 @@ def get_violation():
         min = float(slo["min"])
         max = float(slo["max"])
 
-        response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time(), 'step': '15s'})
-        result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
-
-        #convertire il risultato in DataFrame di pandas
-        df = pd.DataFrame(result, columns=['Time', 'Value'])
-        df['Time'] = pd.to_datetime(df['Time'], unit='s')
-        df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
-        df = df.set_index('Time')
-
-        if("aggregation" in slo):
-            df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
+        df= downloadTimeSerie(slo, seconds, "15s")
 
         dictionary[nomeMetrica] = 0
         for _, row in df.iterrows():
@@ -111,6 +108,19 @@ def windowRollingTimeSerie(df, aggregation, aggregationTime):
             df = df.rolling(aggregationTime).mean()
     return df
 
+def downloadTimeSerie(slo, seconds, steps):
+    response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': slo['_id'], 'start': time.time()-seconds, 'end': time.time(), 'step': steps})
+    result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
+
+    #convertire il risultato in DataFrame di pandas
+    df = pd.DataFrame(result, columns=['Time', 'Value'])
+    df['Time'] = pd.to_datetime(df['Time'], unit='s')
+    df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
+    df = df.set_index('Time')
+
+    if("aggregation" in slo):
+        df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
+
 @app.get("/prevision")
 def prevision():
     #secondi presi nel passato per fare la previsione sul futuro
@@ -128,17 +138,7 @@ def prevision():
         min = float(slo["min"])
         max = float(slo["max"])
 
-        response = requests.get(PROMETHEUS + '/api/v1/query_range', params={'query': nomeMetrica, 'start': time.time()-seconds, 'end': time.time(), 'step': '2m'})
-        result = response.json()['data']['result'][0]['values'] #è una lista dove ogni elemento è una list il cui primo elemento è il timestamp e il secondo è il valore
-
-        #convertire il risultato in DataFrame di pandas
-        df = pd.DataFrame(result, columns=['Time', 'Value'])
-        df['Time'] = pd.to_datetime(df['Time'], unit='s')
-        df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
-        df = df.set_index('Time')
-
-        if("aggregation" in slo):
-            df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
+        df= downloadTimeSerie(slo, seconds, "2m")
 
         #qui generare la previsione e l'intervallo
         confInt = forecast.forecast(nomeMetrica, df).get_ConfInt(futureMinutes)
