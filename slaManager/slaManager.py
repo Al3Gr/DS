@@ -5,7 +5,7 @@ import os
 import time
 import requests
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor
+from threading import Thread
 
 app = Flask(__name__)
 __db = SlaDB(os.environ["mongo_connection"], os.environ["mongo_user"], os.environ["mongo_pwd"])
@@ -21,8 +21,10 @@ def create_sla():
     
     df = downloadTimeSerie(request_data, 604800, "2m")
     forecastObject = forecast.forecast(request_data["_id"],df)
-    with ThreadPoolExecutor() as executor:
-        executor.submit(forecastObject.trainModel)
+
+    th = Thread(target=forecastObject.trainModel)
+    th.daemon = True
+    th.start()
 
     return make_response("", 200)
 
