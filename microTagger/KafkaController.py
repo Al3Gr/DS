@@ -1,9 +1,9 @@
 from confluent_kafka import Consumer, Producer, TopicPartition
 import json
 import sys
-import threading 
+#import threading 
 
-lock = threading.Lock()
+#lock = threading.Lock()
 
 class KafkaController:
 
@@ -46,11 +46,9 @@ class KafkaController:
         else:
             # Check for Kafka message
             return msg
-            #record_key = msg.key()
-            #record_value = msg.value()
-            #data = json.loads(record_value)  
         
     def commitMessage(self, _message):
+        '''
         offset = _message.offset()
         partitionId = _message.partition()
 
@@ -79,8 +77,9 @@ class KafkaController:
         self.dictPartitionMinOffset[partitionId] = lastOffsetCommitable + 1
         #fine lock
         lock.release()
+        '''
 
-        self.consumer.commit(offset = [TopicPartition(self.topicFoto, partition= partitionId, offset = lastOffsetCommitable+1),], asynchronous=True)
+        self.consumer.commit(message = _message, asynchronous=True)
 
     def close(self):
         self.consumer.close()

@@ -5,7 +5,7 @@ import time
 from PIL import Image
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights, alexnet
-from concurrent.futures import ThreadPoolExecutor
+#from concurrent.futures import ThreadPoolExecutor
 from KafkaController import KafkaController
 from io import BytesIO
 from minio import Minio
@@ -15,8 +15,7 @@ from QoSMetrics import QoSMetrics
 #ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def worker(*args):
-    msg, metrics = args
+def worker(msg, metrics):
     dati = json.loads(msg.value()) 
     client = Minio(
         os.environ["minio_endpoint"],
@@ -38,7 +37,7 @@ def worker(*args):
         dictionaryCatProb = inferenza(buffer, model=model, preprocess=preprocess)
         #stoppo il timer
         t1 = time.time()
-        metrics.setInferenceInfo(list(dictionaryCatProb.keys())[0], t1-t0)
+        metrics.setInferenceInfo(list(dictionaryCatProb.keys())[0], t1 - t0)
 
         print("Send response to client")
         kafkaController.produce(photo_id, dictionaryCatProb) 
@@ -97,8 +96,7 @@ if __name__ == "__main__":
         while True:
             msg = kafkaController.receivePhoto()
             if msg is not None:
-                with ThreadPoolExecutor() as executor:
-                    future = executor.submit(worker, msg, metrics)
+                worker(msg, metrics)
     except KeyboardInterrupt:
         pass
     finally:
