@@ -142,6 +142,8 @@ def prevision():
 
         #qui generare la previsione e l'intervallo
         confInt = forecast.forecast(nomeMetrica, df).get_ConfInt(futureMinutes)
+        if confInt is None:
+            return make_response("Too few data to converge!", 200)
         lowInt = confInt["lower Value"]
         upInt = confInt["upper Value"]
 

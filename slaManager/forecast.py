@@ -11,9 +11,9 @@ class forecast:
         self.df = df
     
     def trainModel(self):
-        p_values = range(0, 2)  # Autoregressive order
+        p_values = range(0, 3)  # Autoregressive order
         d_values = [0]          # Differencing order
-        q_values = range(0, 2)  # Moving average order
+        q_values = range(0, 3)  # Moving average order
         P_values = range(0, 2)  # Seasonal autoregressive order
         D_values = range(0, 2)  # Seasonal differencing order
         Q_values = range(0, 2)  # Seasonal moving average order
@@ -53,7 +53,7 @@ class forecast:
         self.best_params_metrica[self.nomeMetrica] = best_params
 
     def get_ConfInt(self, nsteps):
-        if self.nomeMetrica not in self.best_params_metrica:
+        if (self.nomeMetrica not in self.best_params_metrica) or (self.best_params_metrica[self.nomeMetrica] is None):
             return
          
         order = self.best_params_metrica[self.nomeMetrica][:3]
