@@ -40,5 +40,7 @@ spec:
               value: DS
             - name: mongo_pwd
               value: "2023"
+            - name: prometheus_server
+              value: prometheus:9090
           command: ["flask", "--app", "slaManager", "run", "--host=0.0.0.0"]
 
