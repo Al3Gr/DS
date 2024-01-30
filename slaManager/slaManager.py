@@ -121,6 +121,8 @@ def downloadTimeSerie(slo, seconds, steps):
     if("aggregation" in slo):
         df = windowRollingTimeSerie(df, slo["aggregation"], slo["aggregationtime"])
 
+    return df
+
 @app.get("/prevision")
 def prevision():
     #secondi presi nel passato per fare la previsione sul futuro

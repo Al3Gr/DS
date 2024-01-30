@@ -103,11 +103,12 @@ spec:
     app: zookeeper
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: zookeeper
   namespace: dsbd
 spec:
+  serviceName: "zookeeper"
   replicas: 1
   selector:
     matchLabels:
@@ -130,6 +131,16 @@ spec:
           name: zookeeper
           ports:
             - containerPort: 2181
+          volumeMounts:
+            - mountPath: /var/lib/zookeeper/data
+              name: zookeeper-data
       hostname: zookeeper
       restartPolicy: Always
-
+  volumeClaimTemplates:
+    - metadata:
+        name: zookeeper-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi

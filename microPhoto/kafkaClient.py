@@ -52,7 +52,7 @@ class KafkaController:
                     record_value = msg.value()
                     data = json.loads(record_value)
                     photo_id = data["photo_id"]
-                    print(data)
+                    print(data, file=sys.stderr)
                     photoDB.updatePhotoTags(ObjectId(photo_id), data["photo_tags"])
                     self.consumer.commit(message = msg, asynchronous=True)
 
