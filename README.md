@@ -7,12 +7,11 @@ avendo docker engine avviato, posizionarsi nella root directory del progetto e
 digitare nel terminale il seguente comando:  
 ***docker compose up***  
 in questo modo non solo verranno costruite le immagini dei microservizi a partire dai dockerfile  
-definiti nelle diverse directory, ma la costruzione e l'avvio dei container avverrà rispettando una catena di dipendenza  
-specificata nel file in questione.  
+definiti nelle diverse directory, ma la costruzione e l'avvio dei container avverrà rispettando una catena di dipendenza specificata nel file in questione.  
 Da sottolineare è la presenza di un dockerfile nella root directory che
 contiene  operazioni comuni a microuser, microphoto e microtagger: questi si distinguono solo per i diversi requirements da dover installare per il loro funzionamento,   
 per cui si è deciso di creare questo dockerfile comune che viene, di volta in volta,  contestualizzato all'interno del docker compose per costruire il microservizio opportuno.  
-Inoltre, verranno creati anche i volumi per le componenti stateful del progetto (i database e prometheus)  
+Inoltre, verranno creati anche i volumi per le componenti stateful del progetto (i database, il bucket minio e prometheus)  
 e le diverse reti in cui si collocano i microservizi.
 
 Qualora, invece, si volesse effettuare il build del singolo microservizio, posizionarsi nella root specifica  
