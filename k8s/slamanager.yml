@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: slamanager-container
-          image: al3gr/slamanager
+          image: al3gr/slamanager:1.0
           ports:
             - containerPort: 5000
           env:
