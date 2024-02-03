@@ -77,8 +77,8 @@ namespace Client.Services
         {
             using (var content = new MultipartFormDataContent())
             {
-                content.Add(new StringContent(description, Encoding.UTF8, "application/text"), "description");
-                content.Add(new StreamContent(new MemoryStream(image)), "image");
+                content.Add(new StringContent(description), "description");
+                content.Add(new ByteArrayContent(image, 0, image.Length), "image", "files");
                 
                 HttpResponseMessage risposta = await TalkWithServerMultiPartFormData(HttpMethod.Post, urlServer + "photos/upload", content);
 
